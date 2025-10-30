@@ -33,8 +33,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
-	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
-	void NorthNeighbour();
+
+	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
+	
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void NorthEastNeighbour();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")

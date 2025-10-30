@@ -36,7 +36,8 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 		if (bGenerate)
 		{
 			CalculateGrid();
-			//DrunkardsWalk();
+			DrunkardsWalk();
+			ConstructGrid();
 		}else
 		{
 			CalculateGrid();
@@ -85,7 +86,86 @@ void AHexGrid::DrunkardsWalk()
 		
 		while(CurrentSteps < PathSize && CurrentIteration < IterationAttempts)
 		{
+			const int MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
+			const int INTChoice = FMath::RandRange(0, MaxChoice);
+			TPair<FVector, bool> Neighbour;
+
+			switch (uint8_t EnumChoice =  static_cast<uint8_t>(INTChoice); static_cast<ETileNeighbour>(EnumChoice))
+			{
+			case ETileNeighbour::North:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
+			case ETileNeighbour::Northeast:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
+			case ETileNeighbour::Southeast:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
+			case ETileNeighbour::South:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
+			case ETileNeighbour::Southwest:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
+			case ETileNeighbour::Northwest:
+				Neighbour = NorthNeighbour(CurrentTile);
+				if (Neighbour.Value && !TestPath.Contains(Neighbour.Key))
+				{
+					TestPath.Add(Neighbour.Key);
+					CurrentSteps++;
+					CurrentTile = Neighbour.Key;
+				}else
+				{
+					CurrentSteps = PathSize;
+				}
+				break;
 			
+			}
 		}
 		
 	}
@@ -132,8 +212,19 @@ void AHexGrid::CalculateGrid()
 	}
 }
 
-void AHexGrid::NorthNeighbour()
+TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 {
+	
+	FVector TileNeighbour;
+	TileNeighbour.X = CurrentTile.X;
+	TileNeighbour.Y = CurrentTile.Y + 1;
+	TileNeighbour.Z = CurrentTile.Z;
+
+	if (GridInfo.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(TileNeighbour, true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, false);
 }
 
 void AHexGrid::NorthEastNeighbour()
