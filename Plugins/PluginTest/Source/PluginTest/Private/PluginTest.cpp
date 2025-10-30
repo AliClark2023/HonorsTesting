@@ -7,7 +7,7 @@
 void FPluginTestModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	//AActor* testPlane = AddActor(UStaticMesh::StaticClass());
+	
 }
 
 void FPluginTestModule::ShutdownModule()
@@ -16,14 +16,6 @@ void FPluginTestModule::ShutdownModule()
 	// we call this function before unloading the module.
 }
 
-AActor* FPluginTestModule::AddActor(TSubclassOf<AActor> ActorClass)
-{
-	ULevel* level = GEditor->GetEditorWorldContext().World()->GetCurrentLevel();
-	if (level) {
-		return GEditor->AddActor(level, ActorClass, FTransform());
-	}
-	return nullptr;
-}
 
 #undef LOCTEXT_NAMESPACE
 	

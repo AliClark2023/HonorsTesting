@@ -3,7 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Components/InstancedStaticMeshComponent.h"
+//#include "Components/InstancedStaticMeshComponent.h"
+#include "HeaderFiles/MapStructs.h"
 #include "GameFramework/Actor.h"
 #include "HexGrid.generated.h"
 
@@ -23,7 +24,57 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+	virtual void OnConstruction(const FTransform& Transform) override;
 public:
-	UPROPERTY(VisibleAnywhere, Category = "Tiles")
-	UInstancedStaticMeshComponent* tileMesh;
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void ConstructGrid();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void DrunkardsWalk();
+
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void CalculateGrid();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void NorthNeighbour();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void NorthEastNeighbour();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void SouthEastNeighbour();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void SouthNeighbour();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void SouthWestNeighbour();
+	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
+	void NorthWestNeighbour();
+private:
+	UFUNCTION()
+	float _CalculateTileHeight() const;
+	UFUNCTION()
+	void _ClearGrid();
+public:
+	// map tile properties (change to static meshes?)
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	float TileRadius = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* landMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* pathMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	int Columns = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	int Rows = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	int PathSize = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	int IterationAttempts = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	TMap<FVector, FTilePropertiesStruct> GridInfo;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bInitialiseGrid;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bGenerate;
 };

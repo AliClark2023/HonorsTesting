@@ -13,5 +13,5 @@ public:
 	virtual void ShutdownModule() override;
 
 private:
-	AActor* AddActor(TSubclassOf<AActor> ActorClass);
+
 };
