@@ -11,7 +11,7 @@ struct FTilePropertiesStruct
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
-	FVector RelativeLocation;
+	FVector WorldLocation;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	FGameplayTag TileStates;
