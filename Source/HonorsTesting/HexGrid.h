@@ -29,10 +29,15 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void ConstructGrid();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void _ClearGrid();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void DrunkardsWalk();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 
+	
+private:
+	float _CalculateTileHeight() const;
 	// add map to parameter and make a static const function?
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
@@ -40,11 +45,7 @@ public:
 	TPair<FVector, bool> SouthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
-private:
-	UFUNCTION()
-	float _CalculateTileHeight() const;
-	UFUNCTION()
-	void _ClearGrid();
+	
 public:
 	// map tile properties (change to static meshes?)
 	
@@ -67,7 +68,7 @@ public:
 	int CurrentIteration = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
@@ -77,6 +78,8 @@ public:
 
 private:
 	//TArray<FVector> _TestPath;
+	TMap<FVector, int32> GridToLandInstanceIndex;
+	TMap<FVector, int32> GridToPathInstanceIndex;
 	
 	
 };

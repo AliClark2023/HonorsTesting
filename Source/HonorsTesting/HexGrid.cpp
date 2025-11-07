@@ -35,6 +35,7 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
+	
 	if (bInitialiseGrid)
 	{
 		if (bGenerate)
@@ -51,29 +52,194 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	}
 	else
 	{
+		//GridInfo.Empty();
 		_ClearGrid();
 	}
+
+	
 }
 
 void AHexGrid::ConstructGrid()
 {
-	for (auto& element : GridInfo)
+	/* // old method
+	for (auto& Element : GridInfo)
 	{
-		FGameplayTag TileTag = element.Value.TileStates;
+		FGameplayTag TileTag = Element.Value.TileStates;
 
 		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
 		{
 			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(element.Value.WorldLocation);
-			if (landMesh) landMesh->AddInstance(SpawnTransform);
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+			landMesh->AddInstance(SpawnTransform);
 		}
 		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
 		{
 			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(element.Value.WorldLocation);
-			if (pathMesh) pathMesh->AddInstance(SpawnTransform);
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+			pathMesh->AddInstance(SpawnTransform);
 		}
 	}
+	*/
+	
+	for (auto& Element : GridInfo)
+	{
+		FGameplayTag TileTag = Element.Value.TileStates;
+		
+		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		{
+			FTransform SpawnTransform;
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+			
+			// Checks and replaces path tile with land tile
+			if (GridToPathInstanceIndex.Contains(Element.Key))
+			{
+				//removal from path
+				int32* PathIndex = GridToPathInstanceIndex.Find(Element.Key);
+				if (PathIndex)
+				{
+					pathMesh->RemoveInstance(*PathIndex);
+					GridToPathInstanceIndex.Remove(Element.Key);
+					
+					//updating index values (need to decrease all index values above found index)
+					for (auto& Index : GridToPathInstanceIndex)
+					{
+						if (Index.Value > *PathIndex)
+						{
+							Index.Value = Index.Value - 1;
+						}
+					}
+					
+
+					//add to land instances
+					int32 landIndex = landMesh->AddInstance(SpawnTransform);
+					GridToLandInstanceIndex.Add(Element.Key, landIndex);
+					continue;
+				}
+				
+			}
+			// adds land tile to container and keeps track of its index location
+			if (!GridToLandInstanceIndex.Contains(Element.Key))
+			{
+				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
+				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
+			}else
+			{
+				continue;
+			}
+		}
+		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
+		{
+			FTransform SpawnTransform;
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+	
+
+			// Checks and replaces land tile with path tile
+			if (GridToLandInstanceIndex.Contains(Element.Key))
+			{
+				//removal from Land
+				int32* LandIndex = GridToLandInstanceIndex.Find(Element.Key);
+				if (LandIndex)
+				{
+					landMesh->RemoveInstance(*LandIndex);
+					GridToLandInstanceIndex.Remove(Element.Key);
+					
+					//updating index values
+					for (auto& Index : GridToLandInstanceIndex)
+					{
+						if (Index.Value > *LandIndex)
+						{
+							Index.Value = Index.Value - 1;
+						}
+					}
+
+					//add to path instances
+					int32 pathIndex = pathMesh->AddInstance(SpawnTransform);
+					GridToPathInstanceIndex.Add(Element.Key, pathIndex);
+					continue;
+				}
+				
+			}
+			// adds path tile to container and keeps track of its index location
+			int32 TileIndex= pathMesh->AddInstance(SpawnTransform);
+			GridToPathInstanceIndex.Add(Element.Key, TileIndex);
+		}
+	}
+	
+	
+	// initial construction
+	/*
+	if (landMesh->GetInstanceCount() == 0)
+	{
+		for (auto& Element : GridInfo)
+		{
+			FGameplayTag TileTag = Element.Value.TileStates;
+
+			if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+			{
+				FTransform SpawnTransform;
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				int TileIndex = landMesh->AddInstance(SpawnTransform);
+				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
+			}
+			if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
+			{
+				FTransform SpawnTransform;
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				int TileIndex= pathMesh->AddInstance(SpawnTransform);
+				GridToPathInstanceIndex.Add(Element.Key, TileIndex);
+			}
+		}
+		return;
+	}
+	// checks and replaces tiles accordingly
+	for (auto& Element : GridInfo)
+	{
+		FGameplayTag TileToAddTag = Element.Value.TileStates;
+
+		if (TileToAddTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		{
+			FIntPoint TileToAddCoord = (Element.Key.X, Element.Key.Y);
+			//int GridIndexToCheck = GridToInstanceIndex
+			FTransform TileToAdd;
+			TileToAdd.SetLocation(Element.Value.WorldLocation);
+			// if (landMesh) landMesh->AddInstance(SpawnTransform);
+
+			// check tile if its in path container
+			int _PathInstanceCount = pathMesh->GetInstanceCount();
+			for (int i = 0; i < _PathInstanceCount; i++)
+			{
+				FTransform PathTransform;
+				pathMesh->GetInstanceTransform(i,PathTransform, false);
+				if (TileToAdd.GetLocation() == PathTransform.GetLocation())
+				{
+					pathMesh->RemoveInstance(i);
+					landMesh->AddInstance(TileToAdd);
+					break;
+				}
+			}
+		}
+		else if (TileToAddTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
+		{
+			FTransform TileToAdd;
+			TileToAdd.SetLocation(Element.Value.WorldLocation);
+			// if (landMesh) landMesh->AddInstance(SpawnTransform);
+
+			// check tile if its in land container
+			int _LandInstanceCount = landMesh->GetInstanceCount();
+			for (int i = 0; i < _LandInstanceCount; i++)
+			{
+				FTransform LandTransform;
+				landMesh->GetInstanceTransform(i,LandTransform, false);
+				if (TileToAdd.GetLocation() == LandTransform.GetLocation())
+				{
+					landMesh->RemoveInstance(i);
+					pathMesh->AddInstance(TileToAdd);
+					break;
+				}
+			}
+		}
+	}
+	*/
 }
 
 void AHexGrid::DrunkardsWalk()
@@ -239,7 +405,9 @@ void AHexGrid::DrunkardsWalk()
 
 void AHexGrid::CalculateGrid()
 {
-	_ClearGrid();
+	//_ClearGrid();
+	if (!GridInfo.IsEmpty()) GridInfo.Empty();
+	
 	for (int y = 0; y < Rows; y++)
 	{
 		for (int x = 0; x < Columns; x++)
@@ -271,8 +439,6 @@ void AHexGrid::CalculateGrid()
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
 				Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
-				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
-				
 
 				GridInfo.Add(GridCoord, Tile);
 			}
@@ -417,7 +583,16 @@ void AHexGrid::_ClearGrid()
 	if (!GridInfo.IsEmpty())
 	{
 		GridInfo.Empty();
-		if (pathMesh) pathMesh->ClearInstances();
-		if (landMesh) landMesh->ClearInstances();
+		if (pathMesh)
+		{
+			pathMesh->ClearInstances();
+			GridToPathInstanceIndex.Empty();
+		}
+		if (landMesh)
+		{
+			landMesh->ClearInstances();
+			GridToLandInstanceIndex.Empty();
+		}
+		
 	}
 }
