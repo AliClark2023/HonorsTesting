@@ -80,24 +80,44 @@ void AHexGrid::DrunkardsWalk()
 {
 	int _attempts = 0;
 	TArray<FVector> _TestPath;
+	bool _generate = true;
 	
-	while (_attempts < IterationAttempts)
+	while (_attempts <= IterationAttempts && _generate)
 	{
 		FVector _CurrentTile;
 		//TArray<FVector> _TestPath;
 		_TestPath.Empty();
 		int _CurrentSteps = 0;
+		_attempts++;
 		
 		if (GridInfo.Contains(StartPoint))
 		{
 			_CurrentTile = StartPoint;
 			_TestPath.Add(_CurrentTile);
 			_CurrentSteps++;
-
-			while (_CurrentSteps < PathSize)
+			TArray<ETileNeighbour> _VisitedTiles;
+			bool _pathBlocked = false;
+			
+			while (_CurrentSteps < PathSize && !_pathBlocked)
 			{
 				const int _MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
 				ETileNeighbour _ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
+				
+
+				// re-selects another neighbour if already visited
+				while (_VisitedTiles.Contains(_ChosenNeighbour))
+				{
+					if (_VisitedTiles.Num() == _MaxChoice)
+					{
+						// break current iteration
+						_pathBlocked = true;
+						break;
+					}else
+					{
+						_ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
+					}
+					
+				}
 
 				//testing
 				//_ChosenNeighbour = static_cast<ETileNeighbour>(0);
@@ -111,11 +131,18 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps++;
+						// remove when visited tiles is implemented
+						//_CurrentSteps++;
+						
+						// add to visited tiles
+						// if all tiles have been visited end loop
+						_VisitedTiles.Add(ETileNeighbour::North);
 					}
 					break;
 				case ETileNeighbour::Northeast:
@@ -123,11 +150,12 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps++;
+						_VisitedTiles.Add(ETileNeighbour::Northeast);
 					}
 					break;
 				case ETileNeighbour::Southeast:
@@ -135,11 +163,12 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps++;
+						_VisitedTiles.Add(ETileNeighbour::Southeast);
 					}
 					break;
 				case ETileNeighbour::South:
@@ -147,11 +176,12 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps++;
+						_VisitedTiles.Add(ETileNeighbour::South);
 					}
 					break;
 				case ETileNeighbour::Southwest:
@@ -159,11 +189,12 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps = PathSize;
+						_VisitedTiles.Add(ETileNeighbour::Southwest);
 					}
 					break;
 				case ETileNeighbour::Northwest:
@@ -171,23 +202,24 @@ void AHexGrid::DrunkardsWalk()
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
-						_CurrentSteps++;
 						_CurrentTile = _Neighbour.Key;
+						_CurrentSteps++;
+						_VisitedTiles.Empty();
 					}else
 					{
-						_CurrentSteps++;
+						_VisitedTiles.Add(ETileNeighbour::Northwest);
 					}
 					break;
 				}
 
 				if (_TestPath.Num() >= PathSize)
 				{
-					// stop loop, successful path generation
+					// stop loops, successful path generation
+					_generate = false;
 					break;
 				}
 			}
 		}
-		_attempts++;
 	}
 
 	// Applying full or partial path to grid
