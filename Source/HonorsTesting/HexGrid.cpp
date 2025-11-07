@@ -4,6 +4,7 @@
 #include "HexGrid.h"
 
 #include "Components/InstancedStaticMeshComponent.h"
+#include "NavMesh/RecastNavMesh.h"
 
 // Sets default values
 AHexGrid::AHexGrid()
@@ -77,138 +78,131 @@ void AHexGrid::ConstructGrid()
 
 void AHexGrid::DrunkardsWalk()
 {
-	// local variables to path calculation
-	FVector CurrentTile;
-	TUniquePtr<TArray<FVector>> _TestPath = MakeUnique<TArray<FVector>>();
-	//_TestPath->Empty();
-	int CurrentSteps = 0;
-
+	int _attempts = 0;
+	TArray<FVector> _TestPath;
 	
-		
-
-	// resetting iteration count
-	if (CurrentIteration == IterationAttempts)
+	while (_attempts < IterationAttempts)
 	{
-		CurrentIteration = 0;
-	}
-	
-
-	if (GridInfo.Contains(StartPoint))
-	{
+		FVector _CurrentTile;
+		//TArray<FVector> _TestPath;
+		_TestPath.Empty();
+		int _CurrentSteps = 0;
 		
-		CurrentTile = StartPoint;
-		_TestPath->Emplace(CurrentTile);
-		CurrentSteps++;
-
-		while (CurrentSteps < PathSize && CurrentIteration < IterationAttempts)
+		if (GridInfo.Contains(StartPoint))
 		{
-			const int MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
-			//int INTChoice = FMath::RandRange(0, MaxChoice);
+			_CurrentTile = StartPoint;
+			_TestPath.Add(_CurrentTile);
+			_CurrentSteps++;
 
-			//testing
-			//INTChoice = 5;
-			ETileNeighbour ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, MaxChoice));
-			TPair<FVector, bool> Neighbour;
-			
-			switch (ChosenNeighbour)
+			while (_CurrentSteps < PathSize)
 			{
-			case ETileNeighbour::North:
-				Neighbour = NorthNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps++;
-				}
-				break;
-			case ETileNeighbour::Northeast:
-				Neighbour = NorthEastNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps++;
-				}
-				break;
-			case ETileNeighbour::Southeast:
-				Neighbour = SouthEastNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps++;
-				}
-				break;
-			case ETileNeighbour::South:
-				Neighbour = SouthNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps++;
-				}
-				break;
-			case ETileNeighbour::Southwest:
-				Neighbour = SouthWestNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps = PathSize;
-				}
-				break;
-			case ETileNeighbour::Northwest:
-				Neighbour = NorthWestNeighbour(CurrentTile);
-				if (Neighbour.Value && !_TestPath->Contains(Neighbour.Key))
-				{
-					_TestPath->Add(Neighbour.Key);
-					CurrentSteps++;
-					CurrentTile = Neighbour.Key;
-				}else
-				{
-					CurrentSteps++;
-				}
-				break;
-			}
-		}
+				const int _MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
+				ETileNeighbour _ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
 
-		if (_TestPath->Num() < PathSize && CurrentIteration < IterationAttempts)
-		{
-			CurrentIteration++;
-			//TestPath.Empty();
-			DrunkardsWalk();
-		}
-		else
-		{
-			// Generate full or partial path
-			for (FVector& Element : *_TestPath)
-			{
-				if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
-				{
-					FTilePropertiesStruct NewStatus;
-					NewStatus.WorldLocation = TileStatus->WorldLocation;
-					NewStatus.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+				//testing
+				//_ChosenNeighbour = static_cast<ETileNeighbour>(0);
+				
+				TPair<FVector, bool> _Neighbour;
 
-					GridInfo.Add(Element, NewStatus);
+				switch (_ChosenNeighbour)
+				{
+				case ETileNeighbour::North:
+					_Neighbour = NorthNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps++;
+					}
+					break;
+				case ETileNeighbour::Northeast:
+					_Neighbour = NorthEastNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps++;
+					}
+					break;
+				case ETileNeighbour::Southeast:
+					_Neighbour = SouthEastNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps++;
+					}
+					break;
+				case ETileNeighbour::South:
+					_Neighbour = SouthNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps++;
+					}
+					break;
+				case ETileNeighbour::Southwest:
+					_Neighbour = SouthWestNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps = PathSize;
+					}
+					break;
+				case ETileNeighbour::Northwest:
+					_Neighbour = NorthWestNeighbour(_CurrentTile);
+					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					{
+						_TestPath.Add(_Neighbour.Key);
+						_CurrentSteps++;
+						_CurrentTile = _Neighbour.Key;
+					}else
+					{
+						_CurrentSteps++;
+					}
+					break;
+				}
+
+				if (_TestPath.Num() >= PathSize)
+				{
+					// stop loop, successful path generation
+					break;
 				}
 			}
 		}
+		_attempts++;
 	}
+
+	// Applying full or partial path to grid
+	for (FVector Element : _TestPath)
+	{
+		if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
+		{
+			FTilePropertiesStruct NewStatus;
+			NewStatus.WorldLocation = TileStatus->WorldLocation;
+			NewStatus.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+
+			GridInfo.Add(Element, NewStatus);
+		}
+	}
+	CurrentIteration = _attempts;
 }
 
 void AHexGrid::CalculateGrid()
