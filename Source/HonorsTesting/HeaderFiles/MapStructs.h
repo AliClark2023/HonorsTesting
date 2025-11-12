@@ -15,6 +15,9 @@ public:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	FGameplayTag TileStates;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
+	float TileHeight;
 };
 
 UENUM(BlueprintType)

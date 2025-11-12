@@ -30,15 +30,18 @@ public:
 	void ConstructGrid();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void _ClearGrid();
+	// move algorithms into another cpp file if possible
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void DrunkardsWalk();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void PerlinLandscape();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 
 	
 private:
 	float _CalculateTileHeight() const;
-	// add map to parameter and make a static const function?
+	// add map to parameter and make a static const function? then move to calculation header file
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthEastNeighbour(const FVector& CurrentTile) const;
@@ -63,6 +66,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	int PathSize = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	float HeightMultiplier = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	float NoiseScale = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	int IterationAttempts = 10;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	int CurrentIteration = 0;
@@ -75,6 +82,8 @@ public:
 	bool bInitialiseGrid;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGenerate;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bAddHeight;
 
 private:
 	//TArray<FVector> _TestPath;

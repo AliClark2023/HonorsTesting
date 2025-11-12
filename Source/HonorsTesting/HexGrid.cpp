@@ -3,7 +3,9 @@
 
 #include "HexGrid.h"
 
+#include "MathUtil.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Math/TransformCalculus3D.h"
 #include "NavMesh/RecastNavMesh.h"
 
 // Sets default values
@@ -35,18 +37,20 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	
+	// clean up
 	if (bInitialiseGrid)
 	{
 		if (bGenerate)
 		{
 			CalculateGrid();
 			DrunkardsWalk();
+			if (bAddHeight) PerlinLandscape();
 			ConstructGrid();
 		}
 		else
 		{
 			CalculateGrid();
+			if (bAddHeight) PerlinLandscape();
 			ConstructGrid();
 		}
 	}
@@ -88,6 +92,7 @@ void AHexGrid::ConstructGrid()
 		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
 		{
 			FTransform SpawnTransform;
+			if (bAddHeight)SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 			
 			// Checks and replaces path tile with land tile
@@ -401,6 +406,25 @@ void AHexGrid::DrunkardsWalk()
 		}
 	}
 	CurrentIteration = _attempts;
+}
+
+void AHexGrid::PerlinLandscape()
+{
+	// need to find method & parameters to adjust noise value
+
+	for (auto& Tile : GridInfo)
+	{
+		if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		{
+			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1));
+			// normalising, since above function returns a value from -1 to 1
+			NoiseValue = (NoiseValue + 1) / 2;
+
+			// adding to scale
+			NoiseValue = NoiseValue * HeightMultiplier;
+			Tile.Value.TileHeight = NoiseValue;
+		}
+	}
 }
 
 void AHexGrid::CalculateGrid()
