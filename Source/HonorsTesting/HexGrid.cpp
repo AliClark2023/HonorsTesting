@@ -7,6 +7,7 @@
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Math/TransformCalculus3D.h"
 #include "NavMesh/RecastNavMesh.h"
+#include "Runtime/Datasmith/CADKernel/Base/Public/UI/Visu.h"
 
 // Sets default values
 AHexGrid::AHexGrid()
@@ -14,11 +15,13 @@ AHexGrid::AHexGrid()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Attaching components
+	// Attaching components (need meshes to be assigned in editor)
 	landMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LandMesh"));
 	RootComponent = landMesh;
 	pathMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathMesh"));
 	pathMesh->SetupAttachment(RootComponent);
+	pathStartMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathStartMesh"));
+	pathStartMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -38,6 +41,7 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	// clean up
+	/*
 	if (bInitialiseGrid)
 	{
 		if (bGenerate)
@@ -50,7 +54,10 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 		else
 		{
 			CalculateGrid();
-			if (bAddHeight) PerlinLandscape();
+			//testing perlin only
+			//if (bAddHeight) PerlinLandscape();
+			
+			if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
 			ConstructGrid();
 		}
 	}
@@ -59,7 +66,15 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 		//GridInfo.Empty();
 		_ClearGrid();
 	}
+	*/
 
+	// new method
+	
+	GenerateGrid();
+	GeneratePath();
+	GenerateLandscape();
+	
+	// generate regions
 	
 }
 
@@ -84,15 +99,48 @@ void AHexGrid::ConstructGrid()
 		}
 	}
 	*/
-	
+
+	// step method
+	for (auto& Element : GridInfo)
+	{
+		FTransform SpawnTransform;
+		
+		switch (Element.Value.TileStates)
+		{
+		case LandTag:
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+
+			if (!GridToLandInstanceIndex.Contains(Element.Key))
+			{
+				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
+				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
+			}
+			break;
+		case PathStartTag:
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+			pathStartMesh->AddInstance(SpawnTransform);
+			break;
+		default:
+			// do nothing, will help identify if tags aren't being properly assigned
+			break;
+		}
+	}
+	/*
 	for (auto& Element : GridInfo)
 	{
 		FGameplayTag TileTag = Element.Value.TileStates;
 		
-		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		//if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		if (TileTag == LandTag)
 		{
 			FTransform SpawnTransform;
-			if (bAddHeight)SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+			if (bAddHeight)
+			{
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+			}else
+			{
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+			}
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 			
 			// Checks and replaces path tile with land tile
@@ -132,7 +180,14 @@ void AHexGrid::ConstructGrid()
 				continue;
 			}
 		}
-		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
+		if (TileTag == PathStartTag)
+		{
+			FTransform SpawnTransform;
+			SpawnTransform.SetLocation(Element.Value.WorldLocation);
+			pathStartMesh->AddInstance(SpawnTransform);
+		}
+		//if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
+		if (TileTag == PathTag)
 		{
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
@@ -169,85 +224,118 @@ void AHexGrid::ConstructGrid()
 			GridToPathInstanceIndex.Add(Element.Key, TileIndex);
 		}
 	}
-	
-	
-	// initial construction
-	/*
-	if (landMesh->GetInstanceCount() == 0)
-	{
-		for (auto& Element : GridInfo)
-		{
-			FGameplayTag TileTag = Element.Value.TileStates;
-
-			if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-			{
-				FTransform SpawnTransform;
-				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				int TileIndex = landMesh->AddInstance(SpawnTransform);
-				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
-			}
-			if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
-			{
-				FTransform SpawnTransform;
-				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				int TileIndex= pathMesh->AddInstance(SpawnTransform);
-				GridToPathInstanceIndex.Add(Element.Key, TileIndex);
-			}
-		}
-		return;
-	}
-	// checks and replaces tiles accordingly
-	for (auto& Element : GridInfo)
-	{
-		FGameplayTag TileToAddTag = Element.Value.TileStates;
-
-		if (TileToAddTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-		{
-			FIntPoint TileToAddCoord = (Element.Key.X, Element.Key.Y);
-			//int GridIndexToCheck = GridToInstanceIndex
-			FTransform TileToAdd;
-			TileToAdd.SetLocation(Element.Value.WorldLocation);
-			// if (landMesh) landMesh->AddInstance(SpawnTransform);
-
-			// check tile if its in path container
-			int _PathInstanceCount = pathMesh->GetInstanceCount();
-			for (int i = 0; i < _PathInstanceCount; i++)
-			{
-				FTransform PathTransform;
-				pathMesh->GetInstanceTransform(i,PathTransform, false);
-				if (TileToAdd.GetLocation() == PathTransform.GetLocation())
-				{
-					pathMesh->RemoveInstance(i);
-					landMesh->AddInstance(TileToAdd);
-					break;
-				}
-			}
-		}
-		else if (TileToAddTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
-		{
-			FTransform TileToAdd;
-			TileToAdd.SetLocation(Element.Value.WorldLocation);
-			// if (landMesh) landMesh->AddInstance(SpawnTransform);
-
-			// check tile if its in land container
-			int _LandInstanceCount = landMesh->GetInstanceCount();
-			for (int i = 0; i < _LandInstanceCount; i++)
-			{
-				FTransform LandTransform;
-				landMesh->GetInstanceTransform(i,LandTransform, false);
-				if (TileToAdd.GetLocation() == LandTransform.GetLocation())
-				{
-					landMesh->RemoveInstance(i);
-					pathMesh->AddInstance(TileToAdd);
-					break;
-				}
-			}
-		}
-	}
 	*/
 }
 
-void AHexGrid::DrunkardsWalk()
+void AHexGrid::GenerateGrid()
+{
+	if (bInitialiseGrid)
+	{
+		CalculateGrid();
+		ConstructGrid();
+	}else
+	{
+		_ClearGrid();
+	}
+}
+
+void AHexGrid::GeneratePath()
+{
+	if (bGeneratePath)
+	{
+		// generates path then replaces tiles with path tiles
+		TArray<FVector> Path = DrunkardsWalk();
+		
+		for (FVector Element : Path)
+		{
+			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
+			{
+				FTilePropertiesStruct NewStatus;
+				NewStatus.WorldLocation = TileStatus->WorldLocation;
+				NewStatus.TileStates = PathTag;
+
+				GridInfo.Add(Element, NewStatus);
+
+				//replacing starttile with path tile
+				if (Element == StartPoint)
+				{
+					pathStartMesh->ClearInstances();
+
+					//add to path instances
+					FTransform SpawnTransform;
+					SpawnTransform.SetLocation(TileStatus->WorldLocation);
+					int32 PathIndex = pathMesh->AddInstance(SpawnTransform);
+					GridToPathInstanceIndex.Add(Element, PathIndex);
+				}
+				//replacing landtile with path tile
+				if (int32* LandIndex = GridToLandInstanceIndex.Find(Element))
+				{
+					FTransform SpawnTransform;
+					SpawnTransform.SetLocation(TileStatus->WorldLocation);
+					//removal from Land
+					if (LandIndex)
+					{
+						landMesh->RemoveInstance(*LandIndex);
+						GridToLandInstanceIndex.Remove(Element);
+					
+						//updating index values
+						for (auto& Index : GridToLandInstanceIndex)
+						{
+							if (Index.Value > *LandIndex)
+							{
+								Index.Value = Index.Value - 1;
+							}
+						}
+
+						//add to path instances
+						int32 pathIndex = pathMesh->AddInstance(SpawnTransform);
+						GridToPathInstanceIndex.Add(Element, pathIndex);
+						continue;
+					}
+				}
+			}
+		}
+	} // replace path tiles to default tiles
+	else
+	{
+		for (auto& Element : GridInfo)
+		{
+			// Checks and replaces path tile with land tile
+			if (GridToPathInstanceIndex.Contains(Element.Key))
+			{
+				FTransform SpawnTransform;
+				//removal from path
+				int32* PathIndex = GridToPathInstanceIndex.Find(Element.Key);
+				if (PathIndex)
+				{
+					pathMesh->RemoveInstance(*PathIndex);
+					GridToPathInstanceIndex.Remove(Element.Key);
+					
+					//updating index values (need to decrease all index values above found index)
+					for (auto& Index : GridToPathInstanceIndex)
+					{
+						if (Index.Value > *PathIndex)
+						{
+							Index.Value = Index.Value - 1;
+						}
+					}
+					
+
+					//add to land instances
+					int32 landIndex = landMesh->AddInstance(SpawnTransform);
+					GridToLandInstanceIndex.Add(Element.Key, landIndex);
+					continue;
+				}
+			}
+		}
+	}
+}
+
+void AHexGrid::GenerateLandscape()
+{
+}
+
+TArray<FVector> AHexGrid::DrunkardsWalk()
 {
 	int _attempts = 0;
 	TArray<FVector> _TestPath;
@@ -394,18 +482,22 @@ void AHexGrid::DrunkardsWalk()
 	}
 
 	// Applying full or partial path to grid
+	/*
 	for (FVector Element : _TestPath)
 	{
 		if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
 		{
 			FTilePropertiesStruct NewStatus;
 			NewStatus.WorldLocation = TileStatus->WorldLocation;
-			NewStatus.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+			//NewStatus.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+			NewStatus.TileStates = PathTag;
 
 			GridInfo.Add(Element, NewStatus);
 		}
 	}
+	*/
 	CurrentIteration = _attempts;
+	return _TestPath;
 }
 
 void AHexGrid::PerlinLandscape()
@@ -414,7 +506,8 @@ void AHexGrid::PerlinLandscape()
 
 	for (auto& Tile : GridInfo)
 	{
-		if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		//if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
+		if (Tile.Value.TileStates == LandTag)
 		{
 			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1));
 			// normalising, since above function returns a value from -1 to 1
@@ -447,7 +540,8 @@ void AHexGrid::CalculateGrid()
 
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
-				Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
+				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
+				Tile.TileStates = LandTag;
 
 				GridInfo.Add(GridCoord, Tile);
 			}
@@ -462,7 +556,8 @@ void AHexGrid::CalculateGrid()
 
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
-				Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
+				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
+				Tile.TileStates = LandTag;
 
 				GridInfo.Add(GridCoord, Tile);
 			}
@@ -470,6 +565,7 @@ void AHexGrid::CalculateGrid()
 	}
 }
 
+// calculations assume Even-Q hex grid
 TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 {
 	FVector TileNeighbour;
@@ -477,14 +573,13 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 	TileNeighbour.Y = CurrentTile.Y + 1;
 	TileNeighbour.Z = CurrentTile.Z;
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
 }
 
-// assume Even-Q hex grid
 TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) const
 {
 	FVector TileNeighbour;
@@ -502,7 +597,7 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -527,7 +622,7 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -541,7 +636,7 @@ TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 	TileNeighbour.Y = CurrentTile.Y - 1;
 	TileNeighbour.Z = CurrentTile.Z;
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -565,7 +660,7 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -589,11 +684,20 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour))
+	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+}
+
+bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
+{
+	if (CurrentTile.X == 0 || CurrentTile.X == Columns - 1) return true;
+	if (CurrentTile.Y == 0 || CurrentTile.Y == Rows - 1) return true;
+
+	return false;
+	
 }
 
 
@@ -604,6 +708,7 @@ float AHexGrid::_CalculateTileHeight() const
 
 void AHexGrid::_ClearGrid()
 {
+	/*
 	if (!GridInfo.IsEmpty())
 	{
 		GridInfo.Empty();
@@ -617,6 +722,12 @@ void AHexGrid::_ClearGrid()
 			landMesh->ClearInstances();
 			GridToLandInstanceIndex.Empty();
 		}
-		
 	}
+	*/
+
+	pathMesh->ClearInstances();
+	landMesh->ClearInstances();
+	pathStartMesh->ClearInstances();
+	GridToPathInstanceIndex.Empty();
+	GridToLandInstanceIndex.Empty();
 }

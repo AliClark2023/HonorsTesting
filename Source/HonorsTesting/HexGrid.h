@@ -26,13 +26,22 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 public:
+	// functions will construct their respective map segments
+	
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void ConstructGrid();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void GenerateGrid();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void GeneratePath();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void GenerateLandscape();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void _ClearGrid();
+	
 	// move algorithms into another cpp file if possible
 	UFUNCTION(BlueprintCallable, Category = "Generation")
-	void DrunkardsWalk();
+	TArray<FVector> DrunkardsWalk();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void PerlinLandscape();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
@@ -48,6 +57,7 @@ private:
 	TPair<FVector, bool> SouthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
+	bool TileOnBoundary(const FVector& CurrentTile) const;
 	
 public:
 	// map tile properties (change to static meshes?)
@@ -58,7 +68,16 @@ public:
 	UInstancedStaticMeshComponent* landMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
 	UInstancedStaticMeshComponent* pathMesh;
-
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* pathStartMesh;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag PathTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag LandTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Landscape");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	int Columns = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
@@ -85,6 +104,11 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bAddHeight;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bGeneratePath;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bGenerateLandscape;
 private:
 	//TArray<FVector> _TestPath;
 	TMap<FVector, int32> GridToLandInstanceIndex;
