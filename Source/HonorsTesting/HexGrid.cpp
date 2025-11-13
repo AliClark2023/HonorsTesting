@@ -5,9 +5,9 @@
 
 #include "MathUtil.h"
 #include "Components/InstancedStaticMeshComponent.h"
-#include "Math/TransformCalculus3D.h"
-#include "NavMesh/RecastNavMesh.h"
-#include "Runtime/Datasmith/CADKernel/Base/Public/UI/Visu.h"
+//#include "Math/TransformCalculus3D.h"
+//#include "NavMesh/RecastNavMesh.h"
+//#include "Runtime/Datasmith/CADKernel/Base/Public/UI/Visu.h"
 
 // Sets default values
 AHexGrid::AHexGrid()
@@ -104,10 +104,9 @@ void AHexGrid::ConstructGrid()
 	for (auto& Element : GridInfo)
 	{
 		FTransform SpawnTransform;
-		
-		switch (Element.Value.TileStates)
+
+		if (Element.Value.TileStates == LandTag)
 		{
-		case LandTag:
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 
 			if (!GridToLandInstanceIndex.Contains(Element.Key))
@@ -115,15 +114,13 @@ void AHexGrid::ConstructGrid()
 				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
 				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
 			}
-			break;
-		case PathStartTag:
+		}
+		else if (Element.Value.TileStates == PathStartTag)
+		{
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 			pathStartMesh->AddInstance(SpawnTransform);
-			break;
-		default:
-			// do nothing, will help identify if tags aren't being properly assigned
-			break;
 		}
+		
 	}
 	/*
 	for (auto& Element : GridInfo)
@@ -241,10 +238,12 @@ void AHexGrid::GenerateGrid()
 
 void AHexGrid::GeneratePath()
 {
+	TArray<FVector> Path;
+	
 	if (bGeneratePath)
 	{
 		// generates path then replaces tiles with path tiles
-		TArray<FVector> Path = DrunkardsWalk();
+		Path = DrunkardsWalk();
 		
 		for (FVector Element : Path)
 		{
@@ -298,36 +297,35 @@ void AHexGrid::GeneratePath()
 	} // replace path tiles to default tiles
 	else
 	{
-		for (auto& Element : GridInfo)
+		for (auto& Tile: Path)
 		{
-			// Checks and replaces path tile with land tile
-			if (GridToPathInstanceIndex.Contains(Element.Key))
+			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Tile))
 			{
 				FTransform SpawnTransform;
-				//removal from path
-				int32* PathIndex = GridToPathInstanceIndex.Find(Element.Key);
-				if (PathIndex)
-				{
-					pathMesh->RemoveInstance(*PathIndex);
-					GridToPathInstanceIndex.Remove(Element.Key);
-					
-					//updating index values (need to decrease all index values above found index)
-					for (auto& Index : GridToPathInstanceIndex)
-					{
-						if (Index.Value > *PathIndex)
-						{
-							Index.Value = Index.Value - 1;
-						}
-					}
-					
+				SpawnTransform.SetLocation(TileStatus->WorldLocation);
 
+				FTilePropertiesStruct NewStatus;
+				NewStatus.WorldLocation = TileStatus->WorldLocation;
+				if (Tile == StartPoint)
+				{
+					NewStatus.TileStates = PathStartTag;
+
+					GridInfo.Add(Tile, NewStatus);
+					//add to start instance
+					pathStartMesh->AddInstance(SpawnTransform);
+				}else
+				{
+					NewStatus.TileStates = LandTag;
+
+					GridInfo.Add(Tile, NewStatus);
 					//add to land instances
 					int32 landIndex = landMesh->AddInstance(SpawnTransform);
-					GridToLandInstanceIndex.Add(Element.Key, landIndex);
-					continue;
+					GridToLandInstanceIndex.Add(Tile, landIndex);
 				}
+				
 			}
 		}
+		_clearPath();
 	}
 }
 
@@ -563,6 +561,8 @@ void AHexGrid::CalculateGrid()
 			}
 		}
 	}
+
+	if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
 }
 
 // calculations assume Even-Q hex grid
@@ -706,28 +706,21 @@ float AHexGrid::_CalculateTileHeight() const
 	return (TileRadius * sqrt(3));
 }
 
+void AHexGrid::_clearPath()
+{
+	pathMesh->ClearInstances();
+	GridToPathInstanceIndex.Empty();
+}
+
+void AHexGrid::_clearLand()
+{
+	pathStartMesh->ClearInstances();
+	landMesh->ClearInstances();
+	GridToLandInstanceIndex.Empty();
+}
+
 void AHexGrid::_ClearGrid()
 {
-	/*
-	if (!GridInfo.IsEmpty())
-	{
-		GridInfo.Empty();
-		if (pathMesh)
-		{
-			pathMesh->ClearInstances();
-			GridToPathInstanceIndex.Empty();
-		}
-		if (landMesh)
-		{
-			landMesh->ClearInstances();
-			GridToLandInstanceIndex.Empty();
-		}
-	}
-	*/
-
-	pathMesh->ClearInstances();
-	landMesh->ClearInstances();
-	pathStartMesh->ClearInstances();
-	GridToPathInstanceIndex.Empty();
-	GridToLandInstanceIndex.Empty();
+	_clearPath();
+	_clearLand();
 }

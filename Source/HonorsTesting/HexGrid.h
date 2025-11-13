@@ -50,6 +50,9 @@ public:
 	
 private:
 	float _CalculateTileHeight() const;
+	void _clearPath();
+	// also clears path start point atm
+	void _clearLand();
 	// add map to parameter and make a static const function? then move to calculation header file
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
@@ -99,10 +102,11 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bInitialiseGrid;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bGenerate;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bAddHeight;
+	
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	//bool bGenerate;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	//bool bAddHeight;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGeneratePath;
