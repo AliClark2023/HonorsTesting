@@ -27,9 +27,12 @@ Landscape tiles are denoted as green tiles.
 Can adjust the max height for the algorithm to scale the tiles to.
 Can adjust the scaling factor of the algorithm which adjusts the uniformity of the tiles heights.
 
-## Known bugs
-- Path generation does not persist when toggling the landscape generation, a new path is generated each time.
-    - Path tiles generated this way can overlap causing multiple tile types existing on same coordinate
-    - Currently only generate path once landscape is generated.
+## Voronoi Regions
+Can toggle the formation of biomes within editor. 
+Using the editor supplied number, starting region "seeds" are placed randomly throught the grid. Each tile then calculates which seed it is closest to and is assigned that region.
+This process is random and due to the small number of different regions may result in large singular regions
+
+## Known bugs & issues
+- Current generation methods are non-persistant when modifying each generation type
 - Editor performance slows when selecting hex grid object, this progressively gets worse as the hex grid size increases.
-- Adjusting the start point for the pathways while grid is formed causes overlap with tiles, toggle initialise grid to resolve.
+
