@@ -48,10 +48,26 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	Super::OnConstruction(Transform);
 
 	// current method needs this order
+	/*
 	GenerateGrid();
 	GeneratePath();
 	GenerateLandscape();
+	*/
 	
+	// new method: generating grid depending on tile tags, generation methods update the tags
+	// generation methods only effect outcome of tile tags
+	if (bInitialiseGrid)
+	{
+		CalculateGrid();
+		GeneratePath();
+		GenerateLandscape();
+		VoronoiRegions();
+		ConstructGrid();
+	}else
+	{
+		_ClearGrid();
+	}
+
 	
 	// generate regions
 	
@@ -59,11 +75,15 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 
 void AHexGrid::ConstructGrid()
 {
+	// clear any previous instances
+	_ClearGrid();
+	
 	// step method
 	for (auto& Element : GridInfo)
 	{
 		FTransform SpawnTransform;
 
+		/*
 		if (Element.Value.TileStates == LandTag)
 		{
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
@@ -79,7 +99,61 @@ void AHexGrid::ConstructGrid()
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 			pathStartMesh->AddInstance(SpawnTransform);
 		}
+		*/
+		
+		//need to account for land/path variations
+		if (Element.Value.TileTags.HasTag(LandTag))
+		{
+			
+			if (Element.Value.TileTags.HasTag(PathStartTag))
+			{
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				pathStartMesh->AddInstance(SpawnTransform);
+				continue;
+			}
+			
+			// region additions
+			if (Element.Value.TileTags.HasTag(LavaTag))
+			{
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				LavaMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(WaterTag)){
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				WaterMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(MossTag)){
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				MossMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(IceTag)){
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				IceMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(RockTag)){
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				RockMesh->AddInstance(SpawnTransform);
+			}else if (!LandIndex.Contains(Element.Key))
+			{
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+	
+				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
+				LandIndex.Add(Element.Key, TileIndex);
+			}
+		}
+		else if (Element.Value.TileTags.HasTag(PathTag))
+		{
+			if (!PathIndex.Contains(Element.Key))
+			{
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				int32 TileIndex = pathMesh->AddInstance(SpawnTransform);
+				PathIndex.Add(Element.Key, TileIndex);
+			}
+		}
 	}
+	
 }
 
 void AHexGrid::GenerateGrid()
@@ -102,7 +176,21 @@ void AHexGrid::GeneratePath()
 	{
 		// generates path then replaces tiles with path tiles
 		Path = DrunkardsWalk();
-		
+		for (FVector Element : Path)
+		{
+			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
+			{
+				FTilePropertiesStruct NewStatus;
+				NewStatus.WorldLocation = TileStatus->WorldLocation;
+				//NewStatus.TileStates = PathTag;
+				NewStatus.TileTags.Reset();
+				NewStatus.TileTags.AddTag(PathTag);
+
+				GridInfo.Add(Element, NewStatus);
+			}
+		}
+
+		/*
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
@@ -110,6 +198,7 @@ void AHexGrid::GeneratePath()
 				FTilePropertiesStruct NewStatus;
 				NewStatus.WorldLocation = TileStatus->WorldLocation;
 				NewStatus.TileStates = PathTag;
+				NewStatus.TileTags.AddTag(PathTag);
 
 				GridInfo.Add(Element, NewStatus);
 
@@ -184,7 +273,9 @@ void AHexGrid::GeneratePath()
 			}
 		}
 		_clearPath();
+		*/
 	}
+	
 }
 
 void AHexGrid::GenerateLandscape()
@@ -358,7 +449,8 @@ void AHexGrid::PerlinLandscape()
 	for (auto& Tile : GridInfo)
 	{
 		//if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-		if (Tile.Value.TileStates == LandTag)
+		//if (Tile.Value.TileStates == LandTag)
+		if (Tile.Value.TileTags.HasTag(LandTag))
 		{
 			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1));
 			// normalising, since above function returns a value from -1 to 1
@@ -369,25 +461,31 @@ void AHexGrid::PerlinLandscape()
 			Tile.Value.TileHeight = NoiseValue;
 
 			//GridToLandInstanceIndex
+			/*
 			FTransform SpawnTransform;
 			SpawnTransform.SetScale3D(FVector(1.f,1.f,Tile.Value.TileHeight));
 			SpawnTransform.SetLocation(Tile.Value.WorldLocation);
 			int32* Index = LandIndex.Find(Tile.Key);
-			landMesh->UpdateInstanceTransform(*Index, SpawnTransform);
+			if (Index)landMesh->UpdateInstanceTransform(*Index, SpawnTransform);
+			*/
+			
 		}
 	}
 }
 
 void AHexGrid::VoronoiRegions()
 {
+	if (!bGenerateRegions) return;
+	
 	//TArray<FVector> _Regions;
 	TMap<FVector, ERegionType> Regions;
 	FVector NewCoord;
 
-	const int MaxRegions = StaticEnum<ERegionType>()->NumEnums() - 1;
+	const int MaxRegions = StaticEnum<ERegionType>()->NumEnums() - 2;
 	
 
 	// Generating voronoi seed points (starting points for regions) (grid coord)
+	/*
 	while (!Regions.Contains(NewCoord) && Regions.Num() < NumberOfRegions)
 	{
 		NewCoord.X = FMath::RandRange(0,Columns);
@@ -396,16 +494,17 @@ void AHexGrid::VoronoiRegions()
 		
 		Regions.Add(NewCoord, ChosenRegion);
 	}
-	
-	/*
-	for (int i = 0; i <= NumberOfRegions; i++)
-	{
-		newCoord.X = FMath::RandRange(0,Columns);
-		newCoord.Y = FMath::RandRange(0,Rows);
-
-		_Regions.Add(newCoord);
-	}
 	*/
+	
+	for (int i = 0; i < NumberOfRegions; i++)
+	{
+		NewCoord.X = FMath::RandRange(0,Columns);
+		NewCoord.Y = FMath::RandRange(0,Rows);
+		ERegionType ChosenRegion = static_cast<ERegionType>(FMath::RandRange(0, MaxRegions));
+		
+		Regions.Add(NewCoord, ChosenRegion);
+	}
+	
 
 	// assigning region to tile based on shortest distance from tile to seed point
 	for (auto& Tile : GridInfo)
@@ -426,7 +525,10 @@ void AHexGrid::VoronoiRegions()
 		}
 
 		// add region tag to tile
-		Tile.Value.TileStates = GetRegionTag( *Regions.Find(RegionPos));
+		//Tile.Value.TileStates = GetRegionTag( *Regions.Find(RegionPos));
+		FGameplayTag tag = GetRegionTag( *Regions.Find(RegionPos));
+
+		if (tag != FGameplayTag::EmptyTag) Tile.Value.TileTags.AddLeafTag(tag);
 	}
 }
 
@@ -450,7 +552,8 @@ void AHexGrid::CalculateGrid()
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
 				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
-				Tile.TileStates = LandTag;
+				//Tile.TileStates = LandTag;
+				Tile.TileTags.AddTag(LandTag);
 
 				GridInfo.Add(GridCoord, Tile);
 			}
@@ -466,14 +569,19 @@ void AHexGrid::CalculateGrid()
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
 				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
-				Tile.TileStates = LandTag;
+				//Tile.TileStates = LandTag;
+				Tile.TileTags.AddTag(LandTag);
 
 				GridInfo.Add(GridCoord, Tile);
 			}
 		}
 	}
 
-	if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
+	//if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
+	if (GridInfo.Contains(StartPoint))
+	{
+		GridInfo[StartPoint].TileTags.AddLeafTag(PathStartTag);
+	}
 }
 
 // calculations assume Even-Q hex grid
@@ -616,15 +724,15 @@ FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
 	switch (Type)
 	{
 		case ERegionType::Lava:
-			return LandLavaT;
+			return LavaTag;
 		case ERegionType::Water:
-			return LandLavaT;
+			return WaterTag;
 		case ERegionType::Moss:
-			return LandLavaT;
+			return MossTag;
 		case ERegionType::Ice:
-			return LandLavaT;
+			return IceTag;
 		case ERegionType::Rock:
-			return LandLavaT;
+			return RockTag;
 		default:
 			return FGameplayTag::EmptyTag;
 	}
@@ -649,8 +757,18 @@ void AHexGrid::_clearLand()
 	LandIndex.Empty();
 }
 
+void AHexGrid::_clearRegions()
+{
+	LavaMesh->ClearInstances();
+	WaterMesh->ClearInstances();
+	MossMesh->ClearInstances();
+	IceMesh->ClearInstances();
+	RockMesh->ClearInstances();
+}
+
 void AHexGrid::_ClearGrid()
 {
 	_clearPath();
 	_clearLand();
+	_clearRegions();
 }

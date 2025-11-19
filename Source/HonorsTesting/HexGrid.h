@@ -56,6 +56,7 @@ private:
 	void _clearPath();
 	// also clears path start point atm
 	void _clearLand();
+	void _clearRegions();
 	// add map to parameter and make a static const function? then move to calculation header file
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
@@ -97,7 +98,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag LandLavaT = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path.Lava");
+	FGameplayTag LavaTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Lava");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag IceTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Ice");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag MossTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Moss");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Columns = 0;
@@ -120,14 +129,15 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
+	// enabling each generation type
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bInitialiseGrid;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGeneratePath;
-	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGenerateLandscape;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
+	bool bGenerateRegions;
 private:
 	// holds grid coord and its relative index number for instance meshes
 	TMap<FVector, int32> LandIndex;
