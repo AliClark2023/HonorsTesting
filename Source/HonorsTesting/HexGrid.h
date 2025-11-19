@@ -81,23 +81,23 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Columns = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Rows = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int PathSize = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "50.0"))
 	float HeightMultiplier = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float NoiseScale = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int IterationAttempts = 10;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	int CurrentIteration = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
 	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
@@ -115,7 +115,9 @@ public:
 	bool bGenerateLandscape;
 private:
 	//TArray<FVector> _TestPath;
+	// holds grid coord and its relative index number
 	TMap<FVector, int32> GridToLandInstanceIndex;
+	// holds grid coord and its relative index number
 	TMap<FVector, int32> GridToPathInstanceIndex;
 	
 	

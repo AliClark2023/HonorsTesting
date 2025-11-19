@@ -5,9 +5,6 @@
 
 #include "MathUtil.h"
 #include "Components/InstancedStaticMeshComponent.h"
-//#include "Math/TransformCalculus3D.h"
-//#include "NavMesh/RecastNavMesh.h"
-//#include "Runtime/Datasmith/CADKernel/Base/Public/UI/Visu.h"
 
 // Sets default values
 AHexGrid::AHexGrid()
@@ -39,36 +36,6 @@ void AHexGrid::Tick(float DeltaTime)
 void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	// clean up
-	/*
-	if (bInitialiseGrid)
-	{
-		if (bGenerate)
-		{
-			CalculateGrid();
-			DrunkardsWalk();
-			if (bAddHeight) PerlinLandscape();
-			ConstructGrid();
-		}
-		else
-		{
-			CalculateGrid();
-			//testing perlin only
-			//if (bAddHeight) PerlinLandscape();
-			
-			if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
-			ConstructGrid();
-		}
-	}
-	else
-	{
-		//GridInfo.Empty();
-		_ClearGrid();
-	}
-	*/
-
-	// new method
 	
 	GenerateGrid();
 	GeneratePath();
@@ -80,26 +47,6 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 
 void AHexGrid::ConstructGrid()
 {
-	/* // old method
-	for (auto& Element : GridInfo)
-	{
-		FGameplayTag TileTag = Element.Value.TileStates;
-
-		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-		{
-			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-			landMesh->AddInstance(SpawnTransform);
-		}
-		if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
-		{
-			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-			pathMesh->AddInstance(SpawnTransform);
-		}
-	}
-	*/
-
 	// step method
 	for (auto& Element : GridInfo)
 	{
@@ -120,108 +67,7 @@ void AHexGrid::ConstructGrid()
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 			pathStartMesh->AddInstance(SpawnTransform);
 		}
-		
 	}
-	/*
-	for (auto& Element : GridInfo)
-	{
-		FGameplayTag TileTag = Element.Value.TileStates;
-		
-		//if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-		if (TileTag == LandTag)
-		{
-			FTransform SpawnTransform;
-			if (bAddHeight)
-			{
-				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
-			}else
-			{
-				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
-			}
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-			
-			// Checks and replaces path tile with land tile
-			if (GridToPathInstanceIndex.Contains(Element.Key))
-			{
-				//removal from path
-				int32* PathIndex = GridToPathInstanceIndex.Find(Element.Key);
-				if (PathIndex)
-				{
-					pathMesh->RemoveInstance(*PathIndex);
-					GridToPathInstanceIndex.Remove(Element.Key);
-					
-					//updating index values (need to decrease all index values above found index)
-					for (auto& Index : GridToPathInstanceIndex)
-					{
-						if (Index.Value > *PathIndex)
-						{
-							Index.Value = Index.Value - 1;
-						}
-					}
-					
-
-					//add to land instances
-					int32 landIndex = landMesh->AddInstance(SpawnTransform);
-					GridToLandInstanceIndex.Add(Element.Key, landIndex);
-					continue;
-				}
-				
-			}
-			// adds land tile to container and keeps track of its index location
-			if (!GridToLandInstanceIndex.Contains(Element.Key))
-			{
-				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
-				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
-			}else
-			{
-				continue;
-			}
-		}
-		if (TileTag == PathStartTag)
-		{
-			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-			pathStartMesh->AddInstance(SpawnTransform);
-		}
-		//if (TileTag == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path"))
-		if (TileTag == PathTag)
-		{
-			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-	
-
-			// Checks and replaces land tile with path tile
-			if (GridToLandInstanceIndex.Contains(Element.Key))
-			{
-				//removal from Land
-				int32* LandIndex = GridToLandInstanceIndex.Find(Element.Key);
-				if (LandIndex)
-				{
-					landMesh->RemoveInstance(*LandIndex);
-					GridToLandInstanceIndex.Remove(Element.Key);
-					
-					//updating index values
-					for (auto& Index : GridToLandInstanceIndex)
-					{
-						if (Index.Value > *LandIndex)
-						{
-							Index.Value = Index.Value - 1;
-						}
-					}
-
-					//add to path instances
-					int32 pathIndex = pathMesh->AddInstance(SpawnTransform);
-					GridToPathInstanceIndex.Add(Element.Key, pathIndex);
-					continue;
-				}
-				
-			}
-			// adds path tile to container and keeps track of its index location
-			int32 TileIndex= pathMesh->AddInstance(SpawnTransform);
-			GridToPathInstanceIndex.Add(Element.Key, TileIndex);
-		}
-	}
-	*/
 }
 
 void AHexGrid::GenerateGrid()
@@ -240,7 +86,7 @@ void AHexGrid::GeneratePath()
 {
 	TArray<FVector> Path;
 	
-	if (bGeneratePath)
+	if (bInitialiseGrid && bGeneratePath)
 	{
 		// generates path then replaces tiles with path tiles
 		Path = DrunkardsWalk();
@@ -331,6 +177,20 @@ void AHexGrid::GeneratePath()
 
 void AHexGrid::GenerateLandscape()
 {
+	if (bInitialiseGrid && bGenerateLandscape)
+	{
+		PerlinLandscape();
+	}else
+	{
+		for (auto& tiles : GridToLandInstanceIndex)
+		{
+			//need check for valid transform
+			FTransform SpawnTransform;
+			SpawnTransform.SetLocation(GridInfo.Find(tiles.Key)->WorldLocation);
+			landMesh->UpdateInstanceTransform(tiles.Value, SpawnTransform);
+		}
+	}
+	
 }
 
 TArray<FVector> AHexGrid::DrunkardsWalk()
@@ -342,7 +202,6 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 	while (_attempts <= IterationAttempts && _generate)
 	{
 		FVector _CurrentTile;
-		//TArray<FVector> _TestPath;
 		_TestPath.Empty();
 		int _CurrentSteps = 0;
 		_attempts++;
@@ -394,9 +253,6 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 						_VisitedTiles.Empty();
 					}else
 					{
-						// remove when visited tiles is implemented
-						//_CurrentSteps++;
-						
 						// add to visited tiles
 						// if all tiles have been visited end loop
 						_VisitedTiles.Add(ETileNeighbour::North);
@@ -478,22 +334,7 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 			}
 		}
 	}
-
-	// Applying full or partial path to grid
-	/*
-	for (FVector Element : _TestPath)
-	{
-		if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
-		{
-			FTilePropertiesStruct NewStatus;
-			NewStatus.WorldLocation = TileStatus->WorldLocation;
-			//NewStatus.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
-			NewStatus.TileStates = PathTag;
-
-			GridInfo.Add(Element, NewStatus);
-		}
-	}
-	*/
+	
 	CurrentIteration = _attempts;
 	return _TestPath;
 }
@@ -514,13 +355,19 @@ void AHexGrid::PerlinLandscape()
 			// adding to scale
 			NoiseValue = NoiseValue * HeightMultiplier;
 			Tile.Value.TileHeight = NoiseValue;
+
+			//GridToLandInstanceIndex
+			FTransform SpawnTransform;
+			SpawnTransform.SetScale3D(FVector(1.f,1.f,Tile.Value.TileHeight));
+			SpawnTransform.SetLocation(Tile.Value.WorldLocation);
+			int32* landIndex = GridToLandInstanceIndex.Find(Tile.Key);
+			landMesh->UpdateInstanceTransform(*landIndex, SpawnTransform);
 		}
 	}
 }
 
 void AHexGrid::CalculateGrid()
 {
-	//_ClearGrid();
 	if (!GridInfo.IsEmpty()) GridInfo.Empty();
 	
 	for (int y = 0; y < Rows; y++)
