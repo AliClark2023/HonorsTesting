@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
-#include "GameplayTagContainer.h"
 #include "GameplayTagsModule.h"
 #include "MapStructs.generated.h"
 
@@ -28,4 +27,13 @@ enum class ETileNeighbour : uint8{
 	South UMETA(DisplayName = "South"),
 	Southwest UMETA(DisplayName = "SouthWest"),
 	Northwest UMETA(DisplayName = "NorthWest")
+};
+
+UENUM(BlueprintType)
+enum class ERegionType : uint8{
+	Lava UMETA(DisplayName = "Lava"),
+	Water UMETA(DisplayName = "Water"),
+	Moss UMETA(DisplayName = "Moss"),
+	Ice UMETA(DisplayName = "Ice"),
+	Rock UMETA(DisplayName = "Rock"),
 };

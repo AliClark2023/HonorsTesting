@@ -40,10 +40,13 @@ public:
 	void _ClearGrid();
 	
 	// move algorithms into another cpp file if possible
+	
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	TArray<FVector> DrunkardsWalk();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void PerlinLandscape();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 
@@ -61,6 +64,7 @@ private:
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
 	bool TileOnBoundary(const FVector& CurrentTile) const;
+	FGameplayTag GetRegionTag(ERegionType Type) const;
 	
 public:
 	// map tile properties (change to static meshes?)
@@ -73,6 +77,18 @@ public:
 	UInstancedStaticMeshComponent* pathMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
 	UInstancedStaticMeshComponent* pathStartMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* LavaMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* WaterMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* MossMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* IceMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* RockMesh;
+
+	// move to other file?
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag PathTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
@@ -80,6 +96,8 @@ public:
 	FGameplayTag LandTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Landscape");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag LandLavaT = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path.Lava");
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Columns = 0;
@@ -97,28 +115,28 @@ public:
 	int CurrentIteration = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
 	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
+	int NumberOfRegions = 2;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bInitialiseGrid;
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	//bool bGenerate;
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	//bool bAddHeight;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGeneratePath;
 	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
 	bool bGenerateLandscape;
 private:
-	//TArray<FVector> _TestPath;
-	// holds grid coord and its relative index number
-	TMap<FVector, int32> GridToLandInstanceIndex;
-	// holds grid coord and its relative index number
-	TMap<FVector, int32> GridToPathInstanceIndex;
+	// holds grid coord and its relative index number for instance meshes
+	TMap<FVector, int32> LandIndex;
+	TMap<FVector, int32> PathIndex;
+	TMap<FVector, int32> LavaIndex;
+	TMap<FVector, int32> WaterIndex;
+	TMap<FVector, int32> MossIndex;
+	TMap<FVector, int32> IceIndex;
+	TMap<FVector, int32> RockIndex;
 	
 	
 };

@@ -13,7 +13,7 @@ Note that the larger the grid the longer the program takes to populate the grid 
 
 ## Path Generation
 Currently using Drunkards walk to generate pathways on grid. Path tiles are denoted as black tiles.
-Can change the starting point of the path generation by specifying a grid coordinate. This is displayed as a red tile until on a non generated grid.
+Can change the starting point of the path generation by specifying a grid coordinate. This is displayed as a red tile on the starting grid.
 Can change the size of path and limit the number of iterations for the algorithm to attempt to generate the path
 Path will always be generated however, the generated path may not always match the specified size. 
 This could be due for a number of reasons:

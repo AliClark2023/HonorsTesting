@@ -19,6 +19,16 @@ AHexGrid::AHexGrid()
 	pathMesh->SetupAttachment(RootComponent);
 	pathStartMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathStartMesh"));
 	pathStartMesh->SetupAttachment(RootComponent);
+	LavaMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LavaMesh"));
+	LavaMesh->SetupAttachment(RootComponent);
+	WaterMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMesh"));
+	WaterMesh->SetupAttachment(RootComponent);
+	MossMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MossMesh"));
+	MossMesh->SetupAttachment(RootComponent);
+	IceMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("IceMesh"));
+	IceMesh->SetupAttachment(RootComponent);
+	RockMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RockMesh"));
+	RockMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -36,10 +46,12 @@ void AHexGrid::Tick(float DeltaTime)
 void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
+
+	// current method needs this order
 	GenerateGrid();
 	GeneratePath();
 	GenerateLandscape();
+	
 	
 	// generate regions
 	
@@ -56,10 +68,10 @@ void AHexGrid::ConstructGrid()
 		{
 			SpawnTransform.SetLocation(Element.Value.WorldLocation);
 
-			if (!GridToLandInstanceIndex.Contains(Element.Key))
+			if (!LandIndex.Contains(Element.Key))
 			{
 				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
-				GridToLandInstanceIndex.Add(Element.Key, TileIndex);
+				LandIndex.Add(Element.Key, TileIndex);
 			}
 		}
 		else if (Element.Value.TileStates == PathStartTag)
@@ -109,32 +121,32 @@ void AHexGrid::GeneratePath()
 					//add to path instances
 					FTransform SpawnTransform;
 					SpawnTransform.SetLocation(TileStatus->WorldLocation);
-					int32 PathIndex = pathMesh->AddInstance(SpawnTransform);
-					GridToPathInstanceIndex.Add(Element, PathIndex);
+					int32 Index = pathMesh->AddInstance(SpawnTransform);
+					PathIndex.Add(Element, Index);
 				}
 				//replacing landtile with path tile
-				if (int32* LandIndex = GridToLandInstanceIndex.Find(Element))
+				if (int32* LIndex = LandIndex.Find(Element))
 				{
 					FTransform SpawnTransform;
 					SpawnTransform.SetLocation(TileStatus->WorldLocation);
 					//removal from Land
-					if (LandIndex)
+					if (LIndex)
 					{
-						landMesh->RemoveInstance(*LandIndex);
-						GridToLandInstanceIndex.Remove(Element);
+						landMesh->RemoveInstance(*LIndex);
+						LandIndex.Remove(Element);
 					
 						//updating index values
-						for (auto& Index : GridToLandInstanceIndex)
+						for (auto& i : LandIndex)
 						{
-							if (Index.Value > *LandIndex)
+							if (i.Value > *LIndex)
 							{
-								Index.Value = Index.Value - 1;
+								i.Value = i.Value - 1;
 							}
 						}
 
 						//add to path instances
 						int32 pathIndex = pathMesh->AddInstance(SpawnTransform);
-						GridToPathInstanceIndex.Add(Element, pathIndex);
+						PathIndex.Add(Element, pathIndex);
 						continue;
 					}
 				}
@@ -166,7 +178,7 @@ void AHexGrid::GeneratePath()
 					GridInfo.Add(Tile, NewStatus);
 					//add to land instances
 					int32 landIndex = landMesh->AddInstance(SpawnTransform);
-					GridToLandInstanceIndex.Add(Tile, landIndex);
+					LandIndex.Add(Tile, landIndex);
 				}
 				
 			}
@@ -182,7 +194,7 @@ void AHexGrid::GenerateLandscape()
 		PerlinLandscape();
 	}else
 	{
-		for (auto& tiles : GridToLandInstanceIndex)
+		for (auto& tiles : LandIndex)
 		{
 			//need check for valid transform
 			FTransform SpawnTransform;
@@ -360,9 +372,61 @@ void AHexGrid::PerlinLandscape()
 			FTransform SpawnTransform;
 			SpawnTransform.SetScale3D(FVector(1.f,1.f,Tile.Value.TileHeight));
 			SpawnTransform.SetLocation(Tile.Value.WorldLocation);
-			int32* landIndex = GridToLandInstanceIndex.Find(Tile.Key);
-			landMesh->UpdateInstanceTransform(*landIndex, SpawnTransform);
+			int32* Index = LandIndex.Find(Tile.Key);
+			landMesh->UpdateInstanceTransform(*Index, SpawnTransform);
 		}
+	}
+}
+
+void AHexGrid::VoronoiRegions()
+{
+	//TArray<FVector> _Regions;
+	TMap<FVector, ERegionType> Regions;
+	FVector NewCoord;
+
+	const int MaxRegions = StaticEnum<ERegionType>()->NumEnums() - 1;
+	
+
+	// Generating voronoi seed points (starting points for regions) (grid coord)
+	while (!Regions.Contains(NewCoord) && Regions.Num() < NumberOfRegions)
+	{
+		NewCoord.X = FMath::RandRange(0,Columns);
+		NewCoord.Y = FMath::RandRange(0,Rows);
+		ERegionType ChosenRegion = static_cast<ERegionType>(FMath::RandRange(0, MaxRegions));
+		
+		Regions.Add(NewCoord, ChosenRegion);
+	}
+	
+	/*
+	for (int i = 0; i <= NumberOfRegions; i++)
+	{
+		newCoord.X = FMath::RandRange(0,Columns);
+		newCoord.Y = FMath::RandRange(0,Rows);
+
+		_Regions.Add(newCoord);
+	}
+	*/
+
+	// assigning region to tile based on shortest distance from tile to seed point
+	for (auto& Tile : GridInfo)
+	{
+		FVector TilePos = Tile.Key;
+		FVector RegionPos;
+		float Distance = 1000000.f;
+
+		// determining coord of shortest distance
+		for (auto& Region : Regions)
+		{
+			float CurrentDist = FVector::Dist(TilePos, Region.Key);
+			if (CurrentDist < Distance)
+			{
+				Distance = CurrentDist;
+				RegionPos = Region.Key;
+			}
+		}
+
+		// add region tag to tile
+		Tile.Value.TileStates = GetRegionTag( *Regions.Find(RegionPos));
 	}
 }
 
@@ -547,6 +611,25 @@ bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
 	
 }
 
+FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
+{
+	switch (Type)
+	{
+		case ERegionType::Lava:
+			return LandLavaT;
+		case ERegionType::Water:
+			return LandLavaT;
+		case ERegionType::Moss:
+			return LandLavaT;
+		case ERegionType::Ice:
+			return LandLavaT;
+		case ERegionType::Rock:
+			return LandLavaT;
+		default:
+			return FGameplayTag::EmptyTag;
+	}
+}
+
 
 float AHexGrid::_CalculateTileHeight() const
 {
@@ -556,14 +639,14 @@ float AHexGrid::_CalculateTileHeight() const
 void AHexGrid::_clearPath()
 {
 	pathMesh->ClearInstances();
-	GridToPathInstanceIndex.Empty();
+	PathIndex.Empty();
 }
 
 void AHexGrid::_clearLand()
 {
 	pathStartMesh->ClearInstances();
 	landMesh->ClearInstances();
-	GridToLandInstanceIndex.Empty();
+	LandIndex.Empty();
 }
 
 void AHexGrid::_ClearGrid()
