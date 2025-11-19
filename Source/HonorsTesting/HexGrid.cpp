@@ -19,6 +19,8 @@ AHexGrid::AHexGrid()
 	pathMesh->SetupAttachment(RootComponent);
 	pathStartMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathStartMesh"));
 	pathStartMesh->SetupAttachment(RootComponent);
+	pathEndMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathEndMesh"));
+	pathEndMesh->SetupAttachment(RootComponent);
 	LavaMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LavaMesh"));
 	LavaMesh->SetupAttachment(RootComponent);
 	WaterMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMesh"));
@@ -46,15 +48,15 @@ void AHexGrid::Tick(float DeltaTime)
 void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-
-	// current method needs this order
-	/*
-	GenerateGrid();
-	GeneratePath();
-	GenerateLandscape();
-	*/
 	
-	// new method: generating grid depending on tile tags, generation methods update the tags
+	// activated in BP
+	//ConstructLevel();
+	
+	// generate regions
+	
+}
+void AHexGrid::ConstructLevel()
+{	// new method: generating grid depending on tile tags, generation methods update the tags
 	// generation methods only effect outcome of tile tags
 	if (bInitialiseGrid)
 	{
@@ -66,13 +68,9 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	}else
 	{
 		_ClearGrid();
+		GridInfo.Empty();
 	}
-
-	
-	// generate regions
-	
 }
-
 void AHexGrid::ConstructGrid()
 {
 	// clear any previous instances
@@ -111,15 +109,23 @@ void AHexGrid::ConstructGrid()
 				pathStartMesh->AddInstance(SpawnTransform);
 				continue;
 			}
+			if (Element.Value.TileTags.HasTag(PathEndTag))
+			{
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				pathEndMesh->AddInstance(SpawnTransform);
+				continue;
+			}
 			
 			// region additions
 			if (Element.Value.TileTags.HasTag(LavaTag))
 			{
-				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				//SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
 				LavaMesh->AddInstance(SpawnTransform);
 			}else if(Element.Value.TileTags.HasTag(WaterTag)){
-				SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				//SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
+				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
 				WaterMesh->AddInstance(SpawnTransform);
 			}else if(Element.Value.TileTags.HasTag(MossTag)){
@@ -145,6 +151,19 @@ void AHexGrid::ConstructGrid()
 		}
 		else if (Element.Value.TileTags.HasTag(PathTag))
 		{
+			if (Element.Value.TileTags.HasTag(PathStartTag))
+			{
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				pathStartMesh->AddInstance(SpawnTransform);
+				continue;
+			}
+			if (Element.Value.TileTags.HasTag(PathEndTag))
+			{
+				SpawnTransform.SetLocation(Element.Value.WorldLocation);
+				pathEndMesh->AddInstance(SpawnTransform);
+				continue;
+			}
+			
 			if (!PathIndex.Contains(Element.Key))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
@@ -185,10 +204,23 @@ void AHexGrid::GeneratePath()
 				//NewStatus.TileStates = PathTag;
 				NewStatus.TileTags.Reset();
 				NewStatus.TileTags.AddTag(PathTag);
-
+				// marking start and end points of path
+				if (Element == Path[0])
+				{
+					NewStatus.TileTags.AddTag(PathStartTag);
+				}else if (Element == (Path[Path.Num()-1])){
+					NewStatus.TileTags.AddTag(PathEndTag);
+				}else
+				{
+					NewStatus.TileTags.AddTag(PathTag);
+				}
+				
+				
 				GridInfo.Add(Element, NewStatus);
 			}
 		}
+
+		
 
 		/*
 		for (FVector Element : Path)
@@ -532,6 +564,8 @@ void AHexGrid::VoronoiRegions()
 	}
 }
 
+
+
 void AHexGrid::CalculateGrid()
 {
 	if (!GridInfo.IsEmpty()) GridInfo.Empty();
@@ -753,6 +787,7 @@ void AHexGrid::_clearPath()
 void AHexGrid::_clearLand()
 {
 	pathStartMesh->ClearInstances();
+	pathEndMesh->ClearInstances();
 	landMesh->ClearInstances();
 	LandIndex.Empty();
 }

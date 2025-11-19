@@ -47,8 +47,11 @@ public:
 	void PerlinLandscape();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void VoronoiRegions();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	void ConstructLevel();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
+	
 
 	
 private:
@@ -79,6 +82,8 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
 	UInstancedStaticMeshComponent* pathStartMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
+	UInstancedStaticMeshComponent* pathEndMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
 	UInstancedStaticMeshComponent* LavaMesh;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
 	UInstancedStaticMeshComponent* WaterMesh;
@@ -97,6 +102,8 @@ public:
 	FGameplayTag LandTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Landscape");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
+	FGameplayTag PathEndTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathEnd");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag LavaTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Lava");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
@@ -126,7 +133,8 @@ public:
 	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
+	
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
 	// enabling each generation type
