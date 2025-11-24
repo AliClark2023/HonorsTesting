@@ -2,7 +2,7 @@
 Procedural generation of a hex grid to create a map suitable for isometric genres.
 
 Developed with Unreal Engine 5 with a mixture of blueprints and c++
-(As of 19/11/25):
+(As of 24/11/25):
 
 ## World
 Level currently contains a prototype level with a hexgrid and hex layer object. Selecting these will expose parameters to begin/adjust the grid.
