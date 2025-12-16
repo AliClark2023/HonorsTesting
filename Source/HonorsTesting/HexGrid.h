@@ -48,7 +48,7 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
-	void ConstructLevel();
+	FVector ConstructLevel();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 	
@@ -131,10 +131,12 @@ public:
 	int CurrentIteration = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
 	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;
 	
-	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
+	UPROPERTY(BlueprintReadOnly, Category = "Generation Area")
 	TMap<FVector, FTilePropertiesStruct> GridInfo;
 
 	// enabling each generation type

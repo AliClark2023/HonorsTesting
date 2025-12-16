@@ -55,50 +55,34 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	// generate regions
 	
 }
-void AHexGrid::ConstructLevel()
+FVector AHexGrid::ConstructLevel()
 {	// new method: generating grid depending on tile tags, generation methods update the tags
 	// generation methods only effect outcome of tile tags
 	if (bInitialiseGrid)
 	{
+		// clear any previous instances
+		_ClearGrid();
 		CalculateGrid();
 		GeneratePath();
 		GenerateLandscape();
 		VoronoiRegions();
 		ConstructGrid();
+		return EndPoint;
 	}else
 	{
 		_ClearGrid();
 		GridInfo.Empty();
+		return EndPoint;
 	}
 }
 void AHexGrid::ConstructGrid()
 {
-	// clear any previous instances
-	_ClearGrid();
 	
 	// step method
 	for (auto& Element : GridInfo)
 	{
 		FTransform SpawnTransform;
 
-		/*
-		if (Element.Value.TileStates == LandTag)
-		{
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-
-			if (!LandIndex.Contains(Element.Key))
-			{
-				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
-				LandIndex.Add(Element.Key, TileIndex);
-			}
-		}
-		else if (Element.Value.TileStates == PathStartTag)
-		{
-			SpawnTransform.SetLocation(Element.Value.WorldLocation);
-			pathStartMesh->AddInstance(SpawnTransform);
-		}
-		*/
-		
 		//need to account for land/path variations
 		if (Element.Value.TileTags.HasTag(LandTag))
 		{
@@ -193,7 +177,7 @@ void AHexGrid::GeneratePath()
 	
 	if (bInitialiseGrid && bGeneratePath)
 	{
-		// generates path then replaces tiles with path tiles
+		// generates path then adds path tag to specified tiles
 		Path = DrunkardsWalk();
 		for (FVector Element : Path)
 		{
@@ -210,6 +194,7 @@ void AHexGrid::GeneratePath()
 					NewStatus.TileTags.AddTag(PathStartTag);
 				}else if (Element == (Path[Path.Num()-1])){
 					NewStatus.TileTags.AddTag(PathEndTag);
+					EndPoint = Element;
 				}else
 				{
 					NewStatus.TileTags.AddTag(PathTag);
