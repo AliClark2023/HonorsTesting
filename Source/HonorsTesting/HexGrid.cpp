@@ -75,6 +75,14 @@ FVector AHexGrid::ConstructLevel()
 		return EndPoint;
 	}
 }
+
+FVector AHexGrid::LoadConstruction(TMap<FVector, FTilePropertiesStruct> GridLayout)
+{
+	GridInfo = GridLayout;
+	ConstructGrid();
+	return EndPoint;
+}
+
 void AHexGrid::ConstructGrid()
 {
 	

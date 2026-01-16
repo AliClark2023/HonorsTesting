@@ -49,6 +49,8 @@ public:
 	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	FVector ConstructLevel();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	FVector LoadConstruction(TMap<FVector, FTilePropertiesStruct> GridLayout);
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 	
