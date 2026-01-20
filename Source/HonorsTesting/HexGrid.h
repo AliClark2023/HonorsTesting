@@ -139,7 +139,8 @@ public:
 	int NumberOfRegions = 2;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Generation Area")
-	TMap<FVector, FTilePropertiesStruct> GridInfo;
+	//TMap<FVector, FTilePropertiesStruct> GridInfo;
+	FGridProperties GridInfo;
 
 	// enabling each generation type
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")

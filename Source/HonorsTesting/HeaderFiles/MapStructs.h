@@ -4,17 +4,17 @@
 #include "GameplayTagsModule.h"
 #include "GameplayTagContainer.h"
 #include "MapStructs.generated.h"
-
+// describes tile properties
 USTRUCT(BlueprintType)
 struct FTilePropertiesStruct
 {
 	GENERATED_BODY()
-public:
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	FVector WorldLocation;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
-	FGameplayTag TileStates;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
+	//FGameplayTag TileStates;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	float TileHeight = 1.0f;
@@ -26,6 +26,16 @@ public:
 	bool Modified = false;
 };
 
+// describes grid layouts used in each layer
+USTRUCT(BlueprintType)
+struct FGridProperties
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GridProperties")
+	TMap<FVector, FTilePropertiesStruct> GridTiles;
+};
+
+// describing neighbouring tiles
 UENUM(BlueprintType)
 enum class ETileNeighbour : uint8{
 	North UMETA(DisplayName = "North"),
@@ -35,7 +45,7 @@ enum class ETileNeighbour : uint8{
 	Southwest UMETA(DisplayName = "SouthWest"),
 	Northwest UMETA(DisplayName = "NorthWest")
 };
-
+// describing region types
 UENUM(BlueprintType)
 enum class ERegionType : uint8{
 	Lava UMETA(DisplayName = "Lava"),

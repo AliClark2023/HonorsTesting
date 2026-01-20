@@ -71,14 +71,14 @@ FVector AHexGrid::ConstructLevel()
 	}else
 	{
 		_ClearGrid();
-		GridInfo.Empty();
+		GridInfo.GridTiles.Empty();
 		return EndPoint;
 	}
 }
 
 FVector AHexGrid::LoadConstruction(TMap<FVector, FTilePropertiesStruct> GridLayout)
 {
-	GridInfo = GridLayout;
+	GridInfo.GridTiles = GridLayout;
 	ConstructGrid();
 	return EndPoint;
 }
@@ -87,7 +87,7 @@ void AHexGrid::ConstructGrid()
 {
 	
 	// step method
-	for (auto& Element : GridInfo)
+	for (auto& Element : GridInfo.GridTiles)
 	{
 		FTransform SpawnTransform;
 
@@ -189,7 +189,7 @@ void AHexGrid::GeneratePath()
 		Path = DrunkardsWalk();
 		for (FVector Element : Path)
 		{
-			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
+			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
 			{
 				FTilePropertiesStruct NewStatus;
 				NewStatus.WorldLocation = TileStatus->WorldLocation;
@@ -209,7 +209,7 @@ void AHexGrid::GeneratePath()
 				}
 				
 				
-				GridInfo.Add(Element, NewStatus);
+				GridInfo.GridTiles.Add(Element, NewStatus);
 			}
 		}
 
@@ -314,7 +314,7 @@ void AHexGrid::GenerateLandscape()
 		{
 			//need check for valid transform
 			FTransform SpawnTransform;
-			SpawnTransform.SetLocation(GridInfo.Find(tiles.Key)->WorldLocation);
+			SpawnTransform.SetLocation(GridInfo.GridTiles.Find(tiles.Key)->WorldLocation);
 			landMesh->UpdateInstanceTransform(tiles.Value, SpawnTransform);
 		}
 	}
@@ -334,7 +334,7 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 		int _CurrentSteps = 0;
 		_attempts++;
 		
-		if (GridInfo.Contains(StartPoint))
+		if (GridInfo.GridTiles.Contains(StartPoint))
 		{
 			_CurrentTile = StartPoint;
 			_TestPath.Add(_CurrentTile);
@@ -471,7 +471,7 @@ void AHexGrid::PerlinLandscape()
 {
 	// need to find method & parameters to adjust noise value
 
-	for (auto& Tile : GridInfo)
+	for (auto& Tile : GridInfo.GridTiles)
 	{
 		//if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
 		//if (Tile.Value.TileStates == LandTag)
@@ -532,7 +532,7 @@ void AHexGrid::VoronoiRegions()
 	
 
 	// assigning region to tile based on shortest distance from tile to seed point
-	for (auto& Tile : GridInfo)
+	for (auto& Tile : GridInfo.GridTiles)
 	{
 		FVector TilePos = Tile.Key;
 		FVector RegionPos;
@@ -561,7 +561,7 @@ void AHexGrid::VoronoiRegions()
 
 void AHexGrid::CalculateGrid()
 {
-	if (!GridInfo.IsEmpty()) GridInfo.Empty();
+	if (!GridInfo.GridTiles.IsEmpty()) GridInfo.GridTiles.Empty();
 	
 	for (int y = 0; y < Rows; y++)
 	{
@@ -582,7 +582,7 @@ void AHexGrid::CalculateGrid()
 				//Tile.TileStates = LandTag;
 				Tile.TileTags.AddTag(LandTag);
 
-				GridInfo.Add(GridCoord, Tile);
+				GridInfo.GridTiles.Add(GridCoord, Tile);
 			}
 			else
 			{
@@ -599,15 +599,15 @@ void AHexGrid::CalculateGrid()
 				//Tile.TileStates = LandTag;
 				Tile.TileTags.AddTag(LandTag);
 
-				GridInfo.Add(GridCoord, Tile);
+				GridInfo.GridTiles.Add(GridCoord, Tile);
 			}
 		}
 	}
 
 	//if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
-	if (GridInfo.Contains(StartPoint))
+	if (GridInfo.GridTiles.Contains(StartPoint))
 	{
-		GridInfo[StartPoint].TileTags.AddLeafTag(PathStartTag);
+		GridInfo.GridTiles[StartPoint].TileTags.AddLeafTag(PathStartTag);
 	}
 }
 
@@ -619,7 +619,7 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 	TileNeighbour.Y = CurrentTile.Y + 1;
 	TileNeighbour.Z = CurrentTile.Z;
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -643,7 +643,7 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -668,7 +668,7 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -682,7 +682,7 @@ TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 	TileNeighbour.Y = CurrentTile.Y - 1;
 	TileNeighbour.Z = CurrentTile.Z;
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -706,7 +706,7 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
@@ -730,7 +730,7 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 
-	if (GridInfo.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
+	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
