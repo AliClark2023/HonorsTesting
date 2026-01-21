@@ -50,11 +50,13 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	FVector ConstructLevel();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
-	FVector LoadConstruction(TMap<FVector, FTilePropertiesStruct> GridLayout);
+	FVector LoadConstruction(FGridProperties GridLayout);
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
-	
-
+	UFUNCTION(BlueprintCallable, Category = "Query Grid")
+	FVector GetEndPoint();
+	UFUNCTION(BlueprintCallable, Category = "Query Grid")
+	void SetStartPoint(FVector gridPos);
 	
 private:
 	float _CalculateTileHeight() const;
@@ -132,8 +134,8 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
 	int CurrentIteration = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
-	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
 	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;

@@ -33,6 +33,10 @@ struct FGridProperties
 	GENERATED_BODY()
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GridProperties")
 	TMap<FVector, FTilePropertiesStruct> GridTiles;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GridProperties")
+	FVector StartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "GridProperties")
+	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
 };
 
 // describing neighbouring tiles

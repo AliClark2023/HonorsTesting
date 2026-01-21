@@ -67,20 +67,20 @@ FVector AHexGrid::ConstructLevel()
 		GenerateLandscape();
 		VoronoiRegions();
 		ConstructGrid();
-		return EndPoint;
+		return GridInfo.EndPoint;
 	}else
 	{
 		_ClearGrid();
 		GridInfo.GridTiles.Empty();
-		return EndPoint;
+		return GridInfo.EndPoint;
 	}
 }
 
-FVector AHexGrid::LoadConstruction(TMap<FVector, FTilePropertiesStruct> GridLayout)
+FVector AHexGrid::LoadConstruction(FGridProperties GridLayout)
 {
-	GridInfo.GridTiles = GridLayout;
+	GridInfo = GridLayout;
 	ConstructGrid();
-	return EndPoint;
+	return GridInfo.EndPoint;
 }
 
 void AHexGrid::ConstructGrid()
@@ -202,7 +202,8 @@ void AHexGrid::GeneratePath()
 					NewStatus.TileTags.AddTag(PathStartTag);
 				}else if (Element == (Path[Path.Num()-1])){
 					NewStatus.TileTags.AddTag(PathEndTag);
-					EndPoint = Element;
+					//EndPoint = Element;
+					GridInfo.EndPoint = Element;
 				}else
 				{
 					NewStatus.TileTags.AddTag(PathTag);
@@ -334,9 +335,9 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 		int _CurrentSteps = 0;
 		_attempts++;
 		
-		if (GridInfo.GridTiles.Contains(StartPoint))
+		if (GridInfo.GridTiles.Contains(GridInfo.StartPoint))
 		{
-			_CurrentTile = StartPoint;
+			_CurrentTile = GridInfo.StartPoint;
 			_TestPath.Add(_CurrentTile);
 			_CurrentSteps++;
 			TArray<ETileNeighbour> _VisitedTiles;
@@ -605,10 +606,20 @@ void AHexGrid::CalculateGrid()
 	}
 
 	//if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
-	if (GridInfo.GridTiles.Contains(StartPoint))
+	if (GridInfo.GridTiles.Contains(GridInfo.StartPoint))
 	{
-		GridInfo.GridTiles[StartPoint].TileTags.AddLeafTag(PathStartTag);
+		GridInfo.GridTiles[GridInfo.StartPoint].TileTags.AddLeafTag(PathStartTag);
 	}
+}
+
+FVector AHexGrid::GetEndPoint()
+{
+	return GridInfo.EndPoint;
+}
+
+void AHexGrid::SetStartPoint(FVector gridPos)
+{
+	GridInfo.StartPoint = gridPos;
 }
 
 // calculations assume Even-Q hex grid
