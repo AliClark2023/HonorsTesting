@@ -474,26 +474,19 @@ void AHexGrid::PerlinLandscape()
 
 	for (auto& Tile : GridInfo.GridTiles)
 	{
-		//if (Tile.Value.TileStates == UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised"))
-		//if (Tile.Value.TileStates == LandTag)
+	
 		if (Tile.Value.TileTags.HasTag(LandTag))
 		{
-			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1));
+			const float Frequency =  1.0f / FeatureScale;
+			// float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1))
+			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X , Tile.Key.Y ) * Frequency + NoiseOffset );
+			
 			// normalising, since above function returns a value from -1 to 1
 			NoiseValue = (NoiseValue + 1) / 2;
 
 			// adding to scale
 			NoiseValue = NoiseValue * HeightMultiplier;
 			Tile.Value.TileHeight = NoiseValue;
-
-			//GridToLandInstanceIndex
-			/*
-			FTransform SpawnTransform;
-			SpawnTransform.SetScale3D(FVector(1.f,1.f,Tile.Value.TileHeight));
-			SpawnTransform.SetLocation(Tile.Value.WorldLocation);
-			int32* Index = LandIndex.Find(Tile.Key);
-			if (Index)landMesh->UpdateInstanceTransform(*Index, SpawnTransform);
-			*/
 			
 		}
 	}

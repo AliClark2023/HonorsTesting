@@ -127,8 +127,10 @@ public:
 	int PathSize = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "50.0"))
 	float HeightMultiplier = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float NoiseScale = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1"))
+	float FeatureScale = 0.4f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
+	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int IterationAttempts = 10;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
