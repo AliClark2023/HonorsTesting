@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 //#include "Components/InstancedStaticMeshComponent.h"
+#include "Math/UnrealMathUtility.h"
 #include "HeaderFiles/MapStructs.h"
+#include "Classes/PerlinWorm.h"
 #include "GameFramework/Actor.h"
 #include "HexGrid.generated.h"
 
@@ -45,6 +47,8 @@ public:
 	TArray<FVector> DrunkardsWalk();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void PerlinLandscape();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	TArray<FVector> PerlinPaths();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Generation")

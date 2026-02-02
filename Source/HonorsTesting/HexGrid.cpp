@@ -181,12 +181,15 @@ void AHexGrid::GenerateGrid()
 
 void AHexGrid::GeneratePath()
 {
+	// change to allow tile type from algorithm generation
 	TArray<FVector> Path;
 	
 	if (bInitialiseGrid && bGeneratePath)
 	{
 		// generates path then adds path tag to specified tiles
-		Path = DrunkardsWalk();
+		// create selection method
+		//Path = DrunkardsWalk();
+		Path = PerlinPaths();
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
@@ -213,93 +216,6 @@ void AHexGrid::GeneratePath()
 				GridInfo.GridTiles.Add(Element, NewStatus);
 			}
 		}
-
-		
-
-		/*
-		for (FVector Element : Path)
-		{
-			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Element))
-			{
-				FTilePropertiesStruct NewStatus;
-				NewStatus.WorldLocation = TileStatus->WorldLocation;
-				NewStatus.TileStates = PathTag;
-				NewStatus.TileTags.AddTag(PathTag);
-
-				GridInfo.Add(Element, NewStatus);
-
-				//replacing starttile with path tile
-				if (Element == StartPoint)
-				{
-					pathStartMesh->ClearInstances();
-
-					//add to path instances
-					FTransform SpawnTransform;
-					SpawnTransform.SetLocation(TileStatus->WorldLocation);
-					int32 Index = pathMesh->AddInstance(SpawnTransform);
-					PathIndex.Add(Element, Index);
-				}
-				//replacing landtile with path tile
-				if (int32* LIndex = LandIndex.Find(Element))
-				{
-					FTransform SpawnTransform;
-					SpawnTransform.SetLocation(TileStatus->WorldLocation);
-					//removal from Land
-					if (LIndex)
-					{
-						landMesh->RemoveInstance(*LIndex);
-						LandIndex.Remove(Element);
-					
-						//updating index values
-						for (auto& i : LandIndex)
-						{
-							if (i.Value > *LIndex)
-							{
-								i.Value = i.Value - 1;
-							}
-						}
-
-						//add to path instances
-						int32 pathIndex = pathMesh->AddInstance(SpawnTransform);
-						PathIndex.Add(Element, pathIndex);
-						continue;
-					}
-				}
-			}
-		}
-	} // replace path tiles to default tiles
-	else
-	{
-		for (auto& Tile: Path)
-		{
-			if (FTilePropertiesStruct* TileStatus = GridInfo.Find(Tile))
-			{
-				FTransform SpawnTransform;
-				SpawnTransform.SetLocation(TileStatus->WorldLocation);
-
-				FTilePropertiesStruct NewStatus;
-				NewStatus.WorldLocation = TileStatus->WorldLocation;
-				if (Tile == StartPoint)
-				{
-					NewStatus.TileStates = PathStartTag;
-
-					GridInfo.Add(Tile, NewStatus);
-					//add to start instance
-					pathStartMesh->AddInstance(SpawnTransform);
-				}else
-				{
-					NewStatus.TileStates = LandTag;
-
-					GridInfo.Add(Tile, NewStatus);
-					//add to land instances
-					int32 landIndex = landMesh->AddInstance(SpawnTransform);
-					LandIndex.Add(Tile, landIndex);
-				}
-				
-			}
-		}
-		_clearPath();
-		*/
 	}
 	
 }
@@ -490,6 +406,68 @@ void AHexGrid::PerlinLandscape()
 			
 		}
 	}
+}
+
+TArray<FVector> AHexGrid::PerlinPaths()
+{
+	// parameters, expose to user
+	int SegLength = 5;
+	int SegMax = 10;
+	// or SegLength, Num = random number within a range
+	int WormMax = 2;
+	// or until path size has been met
+	int PathSizeTemp = 30;
+	// boundaries (no need to expose)
+	int Width = Rows;
+	int Height = Columns;
+
+	TArray<FPerlinWorm> Worms;
+
+	// testing
+	FVector2D StartPoint = FVector2D(PathStartPoint.X, PathStartPoint.Y);
+	int lSegMax = FMath::RandRange(10,240);
+	int lSegX = (lSegMax - 10) / SegMax;
+	int lSegY = FMath::RandRange(0, 255);
+
+	// creating worms with grid coords
+	for (int i = 0; i < WormMax; i++)
+	{
+		FPerlinWorm NewWorm(StartPoint, PathTag);
+		for (int j = 0; j < SegMax; j++)
+		{
+			int SLength = SegLength;
+			float PN = FMath::PerlinNoise2D(FVector2D(lSegX*j, lSegY*j));
+			int dx = SLength * FMath::Cos(PI * (PN + 1));
+			int dy = SLength * FMath::Sin(PI * (PN + 1));
+
+			//boundary detection
+			if (NewWorm.GetX() + dx < 0 || NewWorm.GetX() + dx > Width)
+			{
+				dx = -dx;
+			}
+			if (NewWorm.GetY() + dy < 0 || NewWorm.GetY() + dy > Height)
+			{
+				dy = -dy;
+			}
+			NewWorm.Grow(FVector2D(NewWorm.GetX() + dx, NewWorm.GetY() + dy));
+		}
+		Worms.Add(NewWorm);
+		// modify start point to end of old worm
+	}
+
+	// updating grid info with worm locations
+	TArray<FVector> WormPaths;
+	
+	for (int i = 0; i < Worms.Num(); i++)
+	{
+		TArray<FVector2D> WormCoords = Worms[i].Display();
+		
+		for (int j = 0; j < WormCoords.Num(); j++)
+		{
+			WormPaths.Push(FVector(WormCoords[j], 0));
+		}
+	}
+	return WormPaths;
 }
 
 void AHexGrid::VoronoiRegions()
