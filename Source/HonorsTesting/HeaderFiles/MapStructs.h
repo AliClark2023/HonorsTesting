@@ -4,6 +4,7 @@
 #include "GameplayTagsModule.h"
 #include "GameplayTagContainer.h"
 #include "MapStructs.generated.h"
+
 // describes tile properties
 USTRUCT(BlueprintType)
 struct FTilePropertiesStruct
