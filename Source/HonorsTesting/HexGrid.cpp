@@ -286,14 +286,24 @@ TArray<FVector> AHexGrid::Walker()
 				*/
 				
 				// DW or PW method
-				TPair<bool, ETileNeighbour> NeighbourTile(DrunkardsWalk(_VisitedTiles));
-
+				ETileNeighbour _ChosenNeighbour;
+				TPair<bool, ETileNeighbour> NeighbourTile;
+				if (SelectDrunkardsWalk)
+				{
+					NeighbourTile = DrunkardsWalk(_VisitedTiles);
+					_ChosenNeighbour = NeighbourTile.Value;
+				}else
+				{
+					NeighbourTile = PerlinWorm(_CurrentTile, _VisitedTiles);
+					_ChosenNeighbour = NeighbourTile.Value;
+				}
+				
 				if (NeighbourTile.Key)
 				{
 					_pathBlocked = true;
 					break;
 				}
-				ETileNeighbour _ChosenNeighbour = NeighbourTile.Value;
+				
 				//testing
 				//_ChosenNeighbour = static_cast<ETileNeighbour>(0);
 				
@@ -748,6 +758,37 @@ TPair<bool, ETileNeighbour> AHexGrid::DrunkardsWalk(const TArray<ETileNeighbour>
 		}else
 		{
 			ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, MaxChoice));
+		}
+	}
+	const TPair<bool, ETileNeighbour> Result(PathBlocked,ChosenNeighbour);
+	return Result;
+}
+
+TPair<bool, ETileNeighbour> AHexGrid::PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const
+{
+	const int MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
+	bool PathBlocked = false;
+	float WormNoise = FMath::PerlinNoise2D(FVector2D((CurrentTile.X + PerlinSeed) * PerlinFreq, (CurrentTile.Y + PerlinSeed) * PerlinFreq));
+	// normalizing then multiplying by 360 to get direction angle
+	float DirAngle = ((WormNoise + 1) / 2) * 360;
+	ETileNeighbour ChosenNeighbour = UTileDirectionUtils::GetDirectionFromAngle(DirAngle);
+
+	// re-selects another neighbour if already visited
+	while (VisitedTiles.Contains(ChosenNeighbour))
+	{
+		WormNoise = FMath::PerlinNoise2D(FVector2D((CurrentTile.X + PerlinSeed) * PerlinFreq, (CurrentTile.Y + PerlinSeed) * PerlinFreq));
+		// normalizing then multiplying by 360 to get direction angle
+		DirAngle = ((WormNoise + 1) / 2) * 360;
+		ETileNeighbour NewNeighbour = UTileDirectionUtils::GetDirectionFromAngle(DirAngle);
+
+		if (VisitedTiles.Num() == MaxChoice || NewNeighbour == ChosenNeighbour)
+		{
+			// break current iteration
+			PathBlocked = true;
+			break;
+		}else
+		{
+			ChosenNeighbour = NewNeighbour;
 		}
 	}
 	const TPair<bool, ETileNeighbour> Result(PathBlocked,ChosenNeighbour);

@@ -80,6 +80,7 @@ private:
 
 	// walker algorithms
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
+	TPair<bool, ETileNeighbour>  PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const;
 public:
 	// map tile properties (change to static meshes?)
 	
@@ -124,7 +125,10 @@ public:
 	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
-	
+
+	// change to enum for walker selection
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	bool SelectDrunkardsWalk = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Columns = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
@@ -137,6 +141,10 @@ public:
 	float FeatureScale = 0.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
 	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0"))
+	float PerlinSeed = 12345.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
+	float PerlinFreq = 0.1f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int IterationAttempts = 10;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
