@@ -2,7 +2,6 @@
 
 
 #include "HexGrid.h"
-
 #include "MathUtil.h"
 #include "Components/InstancedStaticMeshComponent.h"
 
@@ -188,8 +187,8 @@ void AHexGrid::GeneratePath()
 	{
 		// generates path then adds path tag to specified tiles
 		// create selection method
-		//Path = DrunkardsWalk();
-		Path = PerlinPaths();
+		Path = DrunkardsWalk();
+		//Path = PerlinPaths();
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
@@ -422,38 +421,14 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	int Height = Columns;
 
 	TArray<FPerlinWorm> Worms;
+	
 
-	// testing
-	FVector2D StartPoint = FVector2D(PathStartPoint.X, PathStartPoint.Y);
-	int lSegMax = FMath::RandRange(10,240);
-	int lSegX = (lSegMax - 10) / SegMax;
-	int lSegY = FMath::RandRange(0, 255);
-
-	// creating worms with grid coords
-	for (int i = 0; i < WormMax; i++)
-	{
-		FPerlinWorm NewWorm(StartPoint, PathTag);
-		for (int j = 0; j < SegMax; j++)
-		{
-			int SLength = SegLength;
-			float PN = FMath::PerlinNoise2D(FVector2D(lSegX*j, lSegY*j));
-			int dx = SLength * FMath::Cos(PI * (PN + 1));
-			int dy = SLength * FMath::Sin(PI * (PN + 1));
-
-			//boundary detection
-			if (NewWorm.GetX() + dx < 0 || NewWorm.GetX() + dx > Width)
-			{
-				dx = -dx;
-			}
-			if (NewWorm.GetY() + dy < 0 || NewWorm.GetY() + dy > Height)
-			{
-				dy = -dy;
-			}
-			NewWorm.Grow(FVector2D(NewWorm.GetX() + dx, NewWorm.GetY() + dy));
-		}
-		Worms.Add(NewWorm);
-		// modify start point to end of old worm
-	}
+	FPerlinWorm TestWorm(FVector2D(PathStartPoint.X, PathStartPoint.Y), PathTag);
+	float WormNoise = FMath::PerlinNoise2D(FVector2D(TestWorm.GetX(), TestWorm.GetY()));
+	// normalizing then multiplying by 360 to get direction angle
+	WormNoise = ((WormNoise + 1) / 2) * 360;
+	//FTileDirections WormDir;
+	//WormDir = WormDir.GetDirection(WormNoise);
 
 	// updating grid info with worm locations
 	TArray<FVector> WormPaths;
@@ -596,10 +571,12 @@ void AHexGrid::SetStartPoint(FVector gridPos)
 // calculations assume Even-Q hex grid
 TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
+	FVector TileNeighbour(UTileDirectionUtils::NorthNeighbourCoords(CurrentTile));
+	/*
 	TileNeighbour.X = CurrentTile.X;
 	TileNeighbour.Y = CurrentTile.Y + 1;
 	TileNeighbour.Z = CurrentTile.Z;
+	*/
 
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
@@ -610,8 +587,8 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 
 TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
-	
+	FVector TileNeighbour(UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile));
+	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
 	{
 		TileNeighbour.X = CurrentTile.X + 1;
@@ -624,6 +601,7 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Y = CurrentTile.Y + 1;
 		TileNeighbour.Z = CurrentTile.Z;
 	}
+	*/
 
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
@@ -635,8 +613,8 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 
 TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
-	
+	FVector TileNeighbour(UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile));
+	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
 	{
 		TileNeighbour.X = CurrentTile.X + 1;
@@ -649,7 +627,7 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Y = CurrentTile.Y;
 		TileNeighbour.Z = CurrentTile.Z;
 	}
-
+	*/
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
@@ -659,11 +637,12 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 
 TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
+	FVector TileNeighbour(UTileDirectionUtils::SouthNeighbourCoords(CurrentTile));
+	/*
 	TileNeighbour.X = CurrentTile.X;
 	TileNeighbour.Y = CurrentTile.Y - 1;
 	TileNeighbour.Z = CurrentTile.Z;
-
+	*/
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
@@ -673,8 +652,8 @@ TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 
 TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
-	
+	FVector TileNeighbour(UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile));
+	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
 	{
 		TileNeighbour.X = CurrentTile.X - 1;
@@ -687,7 +666,7 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Y = CurrentTile.Y;
 		TileNeighbour.Z = CurrentTile.Z;
 	}
-
+	*/
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
@@ -697,8 +676,8 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 
 TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) const
 {
-	FVector TileNeighbour;
-	
+	FVector TileNeighbour(UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile));
+	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
 	{
 		TileNeighbour.X = CurrentTile.X - 1;
@@ -711,7 +690,7 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Y = CurrentTile.Y + 1;
 		TileNeighbour.Z = CurrentTile.Z;
 	}
-
+	*/
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);

@@ -8,6 +8,7 @@
 #include "HeaderFiles/MapStructs.h"
 #include "Classes/PerlinWorm.h"
 #include "GameFramework/Actor.h"
+#include "HeaderFiles/TileDirectionUtils.h"
 #include "HexGrid.generated.h"
 
 UCLASS()

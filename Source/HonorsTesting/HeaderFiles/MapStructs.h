@@ -5,16 +5,7 @@
 #include "GameplayTagContainer.h"
 #include "MapStructs.generated.h"
 
-// describing neighbouring tiles
-UENUM(BlueprintType)
-enum class ETileNeighbour : uint8{
-	North UMETA(DisplayName = "North"),
-	Northeast UMETA(DisplayName = "NorthEast"),
-	Southeast UMETA(DisplayName = "SouthEast"),
-	South UMETA(DisplayName = "South"),
-	Southwest UMETA(DisplayName = "SouthWest"),
-	Northwest UMETA(DisplayName = "NorthWest")
-};
+
 // describing region types
 UENUM(BlueprintType)
 enum class ERegionType : uint8{
@@ -62,7 +53,7 @@ struct FGridProperties
 
 
 // describes surrounding tiles and their corresponding angle values (degrees)
-USTRUCT(BlueprintType)
+/*USTRUCT(BlueprintType)
 struct FTileDirections
 {
 	GENERATED_BODY()
@@ -76,9 +67,9 @@ struct FTileDirections
 		Directions.Add(ETileNeighbour::Northwest,FVector2D(300, 360));
 	}
 
-	ETileNeighbour getDirection(float Angle)
+	ETileNeighbour GetDirection(float Angle)
 	{
-		for (auto& Dir : Directions)
+		for (const auto& Dir : Directions)
 		{
 			if (Angle >= Dir.Value.X && Angle < Dir.Value.Y) return Dir.Key;
 		}
@@ -87,3 +78,4 @@ struct FTileDirections
 private:
 	TMap<ETileNeighbour, FVector2D> Directions;
 };
+*/
