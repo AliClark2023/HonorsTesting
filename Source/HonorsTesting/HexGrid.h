@@ -42,10 +42,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void _ClearGrid();
 	
-	// move algorithms into another cpp file if possible
-	
+	// will require enum to select which method to use
 	UFUNCTION(BlueprintCallable, Category = "Generation")
-	TArray<FVector> DrunkardsWalk();
+	TArray<FVector> Walker();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void PerlinLandscape();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
@@ -62,7 +61,7 @@ public:
 	FVector GetEndPoint();
 	UFUNCTION(BlueprintCallable, Category = "Query Grid")
 	void SetStartPoint(FVector gridPos);
-	
+
 private:
 	float _CalculateTileHeight() const;
 	void _clearPath();
@@ -78,7 +77,9 @@ private:
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
 	bool TileOnBoundary(const FVector& CurrentTile) const;
 	FGameplayTag GetRegionTag(ERegionType Type) const;
-	
+
+	// walker algorithms
+	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
 public:
 	// map tile properties (change to static meshes?)
 	

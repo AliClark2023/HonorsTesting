@@ -187,7 +187,7 @@ void AHexGrid::GeneratePath()
 	{
 		// generates path then adds path tag to specified tiles
 		// create selection method
-		Path = DrunkardsWalk();
+		Path = Walker();
 		//Path = PerlinPaths();
 		for (FVector Element : Path)
 		{
@@ -237,7 +237,9 @@ void AHexGrid::GenerateLandscape()
 	
 }
 
-TArray<FVector> AHexGrid::DrunkardsWalk()
+// Walker algorithm that changes its neighbour acquisition method depending on type selected( DW or PW)
+//TArray<FVector> AHexGrid::Walker(Selection name)
+TArray<FVector> AHexGrid::Walker()
 {
 	int _attempts = 0;
 	TArray<FVector> _TestPath;
@@ -260,6 +262,8 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 			
 			while (_CurrentSteps < PathSize && !_pathBlocked)
 			{
+				// DW method
+				/*
 				const int _MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
 				ETileNeighbour _ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
 				
@@ -279,6 +283,17 @@ TArray<FVector> AHexGrid::DrunkardsWalk()
 					
 				}
 
+				*/
+				
+				// DW or PW method
+				TPair<bool, ETileNeighbour> NeighbourTile(DrunkardsWalk(_VisitedTiles));
+
+				if (NeighbourTile.Key)
+				{
+					_pathBlocked = true;
+					break;
+				}
+				ETileNeighbour _ChosenNeighbour = NeighbourTile.Value;
 				//testing
 				//_ChosenNeighbour = static_cast<ETileNeighbour>(0);
 				
@@ -409,27 +424,16 @@ void AHexGrid::PerlinLandscape()
 
 TArray<FVector> AHexGrid::PerlinPaths()
 {
-	// parameters, expose to user
-	int SegLength = 5;
-	int SegMax = 10;
-	// or SegLength, Num = random number within a range
-	int WormMax = 2;
-	// or until path size has been met
-	int PathSizeTemp = 30;
-	// boundaries (no need to expose)
-	int Width = Rows;
-	int Height = Columns;
-
 	TArray<FPerlinWorm> Worms;
-	
-
-	FPerlinWorm TestWorm(FVector2D(PathStartPoint.X, PathStartPoint.Y), PathTag);
+	FPerlinWorm TestWorm(FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y), PathTag);
 	float WormNoise = FMath::PerlinNoise2D(FVector2D(TestWorm.GetX(), TestWorm.GetY()));
 	// normalizing then multiplying by 360 to get direction angle
 	WormNoise = ((WormNoise + 1) / 2) * 360;
 	//FTileDirections WormDir;
 	//WormDir = WormDir.GetDirection(WormNoise);
 
+	FVector CurrentTile = GridInfo.StartPoint;
+	
 	// updating grid info with worm locations
 	TArray<FVector> WormPaths;
 	
@@ -724,6 +728,30 @@ FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
 		default:
 			return FGameplayTag::EmptyTag;
 	}
+}
+
+TPair<bool, ETileNeighbour> AHexGrid::DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles)
+{
+	// DW method
+	const int MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
+	ETileNeighbour ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, MaxChoice));
+	bool PathBlocked = false;			
+
+	// re-selects another neighbour if already visited
+	while (VisitedTiles.Contains(ChosenNeighbour))
+	{
+		if (VisitedTiles.Num() == MaxChoice)
+		{
+			// break current iteration
+			PathBlocked = true;
+			break;
+		}else
+		{
+			ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, MaxChoice));
+		}
+	}
+	const TPair<bool, ETileNeighbour> Result(PathBlocked,ChosenNeighbour);
+	return Result;
 }
 
 
