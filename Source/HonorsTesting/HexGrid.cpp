@@ -187,8 +187,8 @@ void AHexGrid::GeneratePath()
 	{
 		// generates path then adds path tag to specified tiles
 		// create selection method
-		Path = Walker();
-		//Path = PerlinPaths();
+		//Path = Walker();
+		Path = PerlinPaths();
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
@@ -435,15 +435,30 @@ void AHexGrid::PerlinLandscape()
 TArray<FVector> AHexGrid::PerlinPaths()
 {
 	TArray<FPerlinWorm> Worms;
-	FPerlinWorm TestWorm(FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y), PathTag);
-	float WormNoise = FMath::PerlinNoise2D(FVector2D(TestWorm.GetX(), TestWorm.GetY()));
-	// normalizing then multiplying by 360 to get direction angle
-	WormNoise = ((WormNoise + 1) / 2) * 360;
-	//FTileDirections WormDir;
-	//WormDir = WormDir.GetDirection(WormNoise);
 
-	FVector CurrentTile = GridInfo.StartPoint;
-	
+	// configuration parameters (for each individual worm)(expose and make struct)
+	int Length = 10;
+	int Seed = 12345;
+	float Freq = 0.1;
+	float TurnSpeed = 1;
+
+	FPerlinWorm TestWorm(FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y), PathTag);
+	//FVector2D CurrentPos = FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y);
+	float Angle = 0.0f;
+
+	for (int i = 0; i < Length; i++)
+	{
+		float Noise = FMath::PerlinNoise2D(FVector2D((TestWorm.GetX() + Seed) * Freq, (TestWorm.GetY() + Seed) * Freq));
+		// normalising (0 to 1) then applying it to degrees
+		Angle = ((Noise + 1) / 2) * 360;
+		
+		ETileNeighbour Dir = UTileDirectionUtils::GetDirectionFromAngle(Angle);
+		FVector NeighbourPos = UTileDirectionUtils::GetNeighbourPos(Dir, FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
+		FVector2D StepPos = FVector2D(NeighbourPos.X, NeighbourPos.Y);
+		
+		TestWorm.Grow(StepPos);
+	}
+	Worms.Add(TestWorm);
 	// updating grid info with worm locations
 	TArray<FVector> WormPaths;
 	

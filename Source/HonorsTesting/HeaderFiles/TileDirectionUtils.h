@@ -22,6 +22,7 @@ class HONORSTESTING_API UTileDirectionUtils : public UBlueprintFunctionLibrary
 public:
 	UFUNCTION(BlueprintCallable, Category = "Tiles")
 	static ETileNeighbour GetDirectionFromAngle(float Angle);
+	static FVector GetNeighbourPos(ETileNeighbour Neighbour, const FVector& CurrentTile);
 	static FVector NorthNeighbourCoords(const FVector& CurrentTile);
 	static FVector NorthEastNeighbourCoords(const FVector& CurrentTile);
 	static FVector SouthNeighbourCoords(const FVector& CurrentTile);
