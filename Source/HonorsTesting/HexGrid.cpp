@@ -634,6 +634,7 @@ TPair<FVector, bool> AHexGrid::GetNeighbour(const ETileNeighbour Neighbour, cons
 // calculations assume Even-Q hex grid
 TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::North;
 	FVector TileNeighbour(UTileDirectionUtils::NorthNeighbourCoords(CurrentTile));
 	/*
 	TileNeighbour.X = CurrentTile.X;
@@ -641,15 +642,27 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 	TileNeighbour.Z = CurrentTile.Z;
 	*/
 
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+	
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+	*/
 }
 
 TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::Northeast;
 	FVector TileNeighbour(UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile));
 	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
@@ -665,17 +678,28 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 	*/
-
+	
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+	
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
-	
+	*/
 }
 
 TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::Southeast;
 	FVector TileNeighbour(UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile));
 	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
@@ -691,30 +715,56 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 	*/
+
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+	*/
 }
 
 TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::South;
 	FVector TileNeighbour(UTileDirectionUtils::SouthNeighbourCoords(CurrentTile));
 	/*
 	TileNeighbour.X = CurrentTile.X;
 	TileNeighbour.Y = CurrentTile.Y - 1;
 	TileNeighbour.Z = CurrentTile.Z;
 	*/
+
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+	*/
 }
 
 TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::Southwest;
 	FVector TileNeighbour(UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile));
 	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
@@ -730,15 +780,28 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 	*/
+
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+	*/
 }
 
 TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) const
 {
+	constexpr ETileNeighbour Type = ETileNeighbour::Northwest;
 	FVector TileNeighbour(UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile));
 	/*
 	if (static_cast<int>(CurrentTile.X) % 2 == 0)
@@ -754,11 +817,23 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 		TileNeighbour.Z = CurrentTile.Z;
 	}
 	*/
+
+	if (!GridInfo.GridTiles.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (TileOnBoundary(TileNeighbour))
+	{
+		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+
+	/*
 	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
 	{
 		return TPair<FVector, bool>(TileNeighbour, true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, false);
+	*/
 }
 
 bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
