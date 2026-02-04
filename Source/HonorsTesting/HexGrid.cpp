@@ -2,8 +2,12 @@
 
 
 #include "HexGrid.h"
+
+#include "GroomVisualizationData.h"
 #include "MathUtil.h"
+#include "VectorTypes.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "Materials/MaterialExpressionOperator.h"
 
 // Sets default values
 AHexGrid::AHexGrid()
@@ -431,34 +435,43 @@ void AHexGrid::PerlinLandscape()
 		}
 	}
 }
-
+// used perlin worms to create paths
 TArray<FVector> AHexGrid::PerlinPaths()
 {
 	TArray<FPerlinWorm> Worms;
-
-	// configuration parameters (for each individual worm)(expose and make struct)
-	int Length = 10;
-	int Seed = 12345;
-	float Freq = 0.1;
-	float TurnSpeed = 1;
-
-	FPerlinWorm TestWorm(FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y), PathTag);
-	//FVector2D CurrentPos = FVector2D(GridInfo.StartPoint.X, GridInfo.StartPoint.Y);
+	
+	FVector2D WormSP(GridInfo.StartPoint.X, GridInfo.StartPoint.Y);
 	float Angle = 0.0f;
-
-	for (int i = 0; i < Length; i++)
+	
+	for (int i = 0; i < PerlinWorms.NumWorms; i++)
 	{
-		float Noise = FMath::PerlinNoise2D(FVector2D((TestWorm.GetX() + Seed) * Freq, (TestWorm.GetY() + Seed) * Freq));
-		// normalising (0 to 1) then applying it to degrees
-		Angle = ((Noise + 1) / 2) * 360;
+		FPerlinWorm TestWorm(WormSP, PathTag);
 		
-		ETileNeighbour Dir = UTileDirectionUtils::GetDirectionFromAngle(Angle);
-		FVector NeighbourPos = UTileDirectionUtils::GetNeighbourPos(Dir, FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
-		FVector2D StepPos = FVector2D(NeighbourPos.X, NeighbourPos.Y);
+		for (int j = 0; j < PerlinWorms.Length; j++)
+		{
+			float Noise = FMath::PerlinNoise2D(FVector2D((TestWorm.GetX() + PerlinWorms.OriginalSeed) * PerlinWorms.Freq,
+				(TestWorm.GetY() + PerlinWorms.OriginalSeed) * PerlinWorms.Freq));
+			// normalising (0 to 1) then applying it to degrees
+			Angle = ((Noise + 1) / 2) * 360;
 		
-		TestWorm.Grow(StepPos);
+			ETileNeighbour Dir = UTileDirectionUtils::GetDirectionFromAngle(Angle);
+			//FVector NeighbourPos = UTileDirectionUtils::GetNeighbourPos(Dir, FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
+			TPair<FVector,bool> Neighbour = GetNeighbour(Dir,FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
+
+			// Valid grid coord check
+			if (Neighbour.Value)
+			{
+				FVector2D StepPos = FVector2D(Neighbour.Key.X, Neighbour.Key.Y);
+				TestWorm.Grow(StepPos);
+			}
+			
+		}
+		Worms.Add(TestWorm);
+		// need to modify starting point of next worm
+		// starting new worm at end of old worm (for now, change to random point along its length)
+		WormSP = FVector2D(TestWorm.GetX(), TestWorm.GetY());
 	}
-	Worms.Add(TestWorm);
+	
 	// updating grid info with worm locations
 	TArray<FVector> WormPaths;
 	
@@ -595,6 +608,27 @@ FVector AHexGrid::GetEndPoint()
 void AHexGrid::SetStartPoint(FVector gridPos)
 {
 	GridInfo.StartPoint = gridPos;
+}
+
+TPair<FVector, bool> AHexGrid::GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const
+{
+	switch (Neighbour)
+	{
+	case ETileNeighbour::North:
+		return  NorthNeighbour(CurrentTile);
+	case ETileNeighbour::Northeast:
+		return  NorthEastNeighbour(CurrentTile);
+	case ETileNeighbour::Southeast:
+		return  SouthEastNeighbour(CurrentTile);
+	case ETileNeighbour::South:
+		return  SouthNeighbour(CurrentTile);
+	case ETileNeighbour::Southwest:
+		return  SouthWestNeighbour(CurrentTile);
+	case ETileNeighbour::Northwest:
+		return  NorthWestNeighbour(CurrentTile);
+	default:
+		return TPair<FVector, bool>(CurrentTile, false);
+	}
 }
 
 // calculations assume Even-Q hex grid

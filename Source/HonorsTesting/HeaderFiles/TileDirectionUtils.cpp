@@ -10,7 +10,28 @@ ETileNeighbour UTileDirectionUtils::GetDirectionFromAngle(float Angle)
 	if (Angle < 300.f)  return ETileNeighbour::Southwest;
 	return ETileNeighbour::Northwest;
 }
-
+// returns position of opposite neighbour, used for responding to boundaries
+FVector UTileDirectionUtils::GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile)
+{
+	switch (CurrentNeighbour)
+	{
+	case ETileNeighbour::North:
+		return  UTileDirectionUtils::SouthNeighbourCoords(CurrentTile);
+	case ETileNeighbour::Northeast:
+		return  UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile);
+	case ETileNeighbour::Southeast:
+		return  UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile);
+	case ETileNeighbour::South:
+		return  UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
+	case ETileNeighbour::Southwest:
+		return  UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile);
+	case ETileNeighbour::Northwest:
+		return  UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile);
+	default:
+		return CurrentTile;
+	}
+}
+/*
 FVector UTileDirectionUtils::GetNeighbourPos(const ETileNeighbour Neighbour, const FVector& CurrentTile)
 {
 	switch (Neighbour)
@@ -31,6 +52,7 @@ FVector UTileDirectionUtils::GetNeighbourPos(const ETileNeighbour Neighbour, con
 		return UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
 	}
 }
+*/
 
 /*
  * Following Functions assume Even-Q hex grid

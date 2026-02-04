@@ -52,30 +52,19 @@ struct FGridProperties
 };
 
 
-// describes surrounding tiles and their corresponding angle values (degrees)
-/*USTRUCT(BlueprintType)
-struct FTileDirections
+// describe worm characteristics for perlin worms
+USTRUCT(BlueprintType)
+struct FWormConfig
 {
 	GENERATED_BODY()
-	FTileDirections()
-	{
-		Directions.Add(ETileNeighbour::North,FVector2D(0, 60));
-		Directions.Add(ETileNeighbour::Northeast,FVector2D(60, 120));
-		Directions.Add(ETileNeighbour::Southeast,FVector2D(120, 180));
-		Directions.Add(ETileNeighbour::South,FVector2D(180, 240));
-		Directions.Add(ETileNeighbour::Southwest,FVector2D(240, 300));
-		Directions.Add(ETileNeighbour::Northwest,FVector2D(300, 360));
-	}
 
-	ETileNeighbour GetDirection(float Angle)
-	{
-		for (const auto& Dir : Directions)
-		{
-			if (Angle >= Dir.Value.X && Angle < Dir.Value.Y) return Dir.Key;
-		}
-		return ETileNeighbour::North;
-	};
-private:
-	TMap<ETileNeighbour, FVector2D> Directions;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "1"))
+	int NumWorms = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
+	int Length = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))
+	int OriginalSeed = 12345;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))
+	float Freq = 0.1;
+	
 };
-*/

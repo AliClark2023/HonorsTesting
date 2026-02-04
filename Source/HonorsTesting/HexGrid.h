@@ -69,6 +69,7 @@ private:
 	void _clearLand();
 	void _clearRegions();
 	// add map to parameter and make a static const function? then move to calculation header file
+	TPair<FVector, bool> GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthEastNeighbour(const FVector& CurrentTile) const;
@@ -126,7 +127,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
 
-	// change to enum for walker selection
+	// change to enum for walker selection, reduce these down to structs for carity
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
 	bool SelectDrunkardsWalk = true;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
@@ -141,10 +142,15 @@ public:
 	float FeatureScale = 0.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
 	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
+	//Perlin
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0"))
 	float PerlinSeed = 12345.0f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
 	float PerlinFreq = 0.1f;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	FWormConfig PerlinWorms;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int IterationAttempts = 10;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
