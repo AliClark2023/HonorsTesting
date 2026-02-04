@@ -61,6 +61,8 @@ public:
 	FVector GetEndPoint();
 	UFUNCTION(BlueprintCallable, Category = "Query Grid")
 	void SetStartPoint(FVector gridPos);
+	UFUNCTION(BlueprintCallable, Category = "Query Grid")
+	void JoinIslands(FVector CurrentTile);
 
 private:
 	float _CalculateTileHeight() const;
@@ -77,6 +79,7 @@ private:
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
 	bool TileOnBoundary(const FVector& CurrentTile) const;
+	bool TileBeforeBoundary(const FVector& CurrentTile) const;
 	FGameplayTag GetRegionTag(ERegionType Type) const;
 
 	// walker algorithms

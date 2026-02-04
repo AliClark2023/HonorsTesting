@@ -16,6 +16,14 @@ enum class ERegionType : uint8{
 	Rock UMETA(DisplayName = "Rock"),
 };
 
+// path type selection
+UENUM(BlueprintType)
+enum class EPathType : uint8
+{
+	DrunkardWalk UMETA(DisplayName = "DrunkardWalk"),
+	PerlinWorm UMETA(DisplayName = "PerlinWorm"),
+};
+
 // describes tile properties
 USTRUCT(BlueprintType)
 struct FTilePropertiesStruct
@@ -51,6 +59,8 @@ struct FOperationConfig
 	bool bGenerateLandscape;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
 	bool bGenerateRegions;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	EPathType PathMethod = EPathType::DrunkardWalk;
 };
 // describes grid layouts used in each layer
 USTRUCT(BlueprintType)
@@ -153,6 +163,8 @@ struct FWormConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "1"))
 	int NumWorms = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
+	bool AreIslands = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
 	int Length = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")

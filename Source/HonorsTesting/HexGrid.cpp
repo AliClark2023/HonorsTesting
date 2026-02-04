@@ -189,10 +189,20 @@ void AHexGrid::GeneratePath()
 	
 	if (OperationConfig.bInitialiseGrid && OperationConfig.bGeneratePath)
 	{
+		
 		// generates path then adds path tag to specified tiles
-		// create selection method
-		//Path = Walker();
-		Path = PerlinPaths();
+		switch (OperationConfig.PathMethod)
+		{
+		case EPathType::DrunkardWalk:
+			Path = Walker();
+			break;
+		case EPathType::PerlinWorm:
+			Path = PerlinPaths();
+			break;
+		default:
+			Path = Walker();
+		}
+		
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
@@ -219,8 +229,24 @@ void AHexGrid::GeneratePath()
 				GridInfo.GridTiles.Add(Element, NewStatus);
 			}
 		}
+		// only checks surrounding tiles for islands when specified
+		if (PerlinWorms.AreIslands)
+		{
+			for (auto& Element : GridInfo.GridTiles)
+			{
+				if (Element.Value.TileTags.HasTag(TileConfig.PathTag))
+				{
+					continue;
+				}
+				// need to check boundary + 1
+				if (TileBeforeBoundary(Element.Key))
+				{
+					continue;
+				}
+				JoinIslands(Element.Key);
+			}
+		}
 	}
-	
 }
 
 void AHexGrid::GenerateLandscape()
@@ -269,18 +295,6 @@ TArray<FVector> AHexGrid::Walker()
 				// DW method
 				TPair<bool, ETileNeighbour> NeighbourTile = DrunkardsWalk(_VisitedTiles);
 				ETileNeighbour _ChosenNeighbour = NeighbourTile.Value;
-
-				/*
-				if (SelectDrunkardsWalk)
-				{
-					NeighbourTile = DrunkardsWalk(_VisitedTiles);
-					_ChosenNeighbour = NeighbourTile.Value;
-				}else
-				{
-					NeighbourTile = PerlinWorm(_CurrentTile, _VisitedTiles);
-					_ChosenNeighbour = NeighbourTile.Value;
-				}
-				*/
 				
 				if (NeighbourTile.Key)
 				{
@@ -600,6 +614,44 @@ void AHexGrid::SetStartPoint(FVector gridPos)
 	GridInfo.StartPoint = gridPos;
 }
 
+// should only be used on tiles 1 away from boundary
+void AHexGrid::JoinIslands(FVector CurrentTile)
+{
+	// check surrounding tiles for paths
+	int PathCount = 0;
+	for (int i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums(); i++)
+	{
+		ETileNeighbour NeighbourToCheck = StaticCast<ETileNeighbour>(i);
+		TPair<FVector, bool> PosToCheck = GetNeighbour(NeighbourToCheck, CurrentTile);
+		FTilePropertiesStruct* TileToCheck = GridInfo.GridTiles.Find(PosToCheck.Key);
+		if (TileToCheck != nullptr)
+		{
+			if (TileToCheck->TileTags.HasTag(TileConfig.PathTag))
+			{
+				
+				PathCount++;
+				if (PathCount >= 2)
+				{
+					if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(CurrentTile))
+					{
+						FTilePropertiesStruct NewStatus;
+						NewStatus.WorldLocation = TileStatus->WorldLocation;
+						//NewStatus.TileStates = PathTag;
+						NewStatus.TileTags.Reset();
+						//NewStatus.TileTags.AddTag(TileConfig.PathTag);
+						// testing
+						NewStatus.TileTags.AddTag(TileConfig.LavaTag);
+					
+						GridInfo.GridTiles.Add(CurrentTile, NewStatus);
+						return;
+					}
+					
+				}
+			}
+		}
+	}
+}
+
 TPair<FVector, bool> AHexGrid::GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const
 {
 	switch (Neighbour)
@@ -722,6 +774,15 @@ bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
 {
 	if (CurrentTile.X == 0 || CurrentTile.X == GridConfig.Columns - 1) return true;
 	if (CurrentTile.Y == 0 || CurrentTile.Y == GridConfig.Rows - 1) return true;
+
+	return false;
+	
+}
+
+bool AHexGrid::TileBeforeBoundary(const FVector& CurrentTile) const
+{
+	if (CurrentTile.X <= 1 || CurrentTile.X >= GridConfig.Columns - 2) return true;
+	if (CurrentTile.Y <= 1 || CurrentTile.Y >= GridConfig.Rows - 2) return true;
 
 	return false;
 	
