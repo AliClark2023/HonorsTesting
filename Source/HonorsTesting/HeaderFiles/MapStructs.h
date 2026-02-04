@@ -38,6 +38,20 @@ struct FTilePropertiesStruct
 	bool Modified = false;
 };
 
+// Generation operation
+USTRUCT(BlueprintType)
+struct FOperationConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	bool bInitialiseGrid;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	bool bGeneratePath;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	bool bGenerateLandscape;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	bool bGenerateRegions;
+};
 // describes grid layouts used in each layer
 USTRUCT(BlueprintType)
 struct FGridProperties
@@ -66,6 +80,53 @@ struct FGridConfig
 	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid Properties", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
 	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
+};
+
+// Tile Specific attributes
+USTRUCT(BlueprintType)
+struct FTileConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	float TileRadius = 100.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* landMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* pathMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* pathStartMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* pathEndMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* LavaMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* WaterMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* MossMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* IceMesh;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfig")
+	UInstancedStaticMeshComponent* RockMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag PathTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag LandTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Landscape");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag PathEndTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathEnd");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag LavaTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Lava");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag IceTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Ice");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag MossTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Moss");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
+	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
+	
 };
 
 /*
@@ -105,4 +166,17 @@ struct FWormConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0", ClampMax = "5"))
 	FVector2D WormFreqRange = FVector2D(0.1f, 1.2f);
 	
+};
+
+// Parameters governing Perlin landscape
+USTRUCT(BlueprintType)
+struct FPerlinLandscapeConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandscapeConfig", meta = (ClampMin = "1.0", ClampMax = "50.0"))
+	float HeightMultiplier = 1.f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandscapeConfig", meta = (ClampMin = "0.0", ClampMax = "1"))
+	float FeatureScale = 0.4f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandscapeConfig", meta = (ClampMin = "0.0", ClampMax = "1000"))
+	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
 };

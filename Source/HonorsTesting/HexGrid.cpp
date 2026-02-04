@@ -16,24 +16,24 @@ AHexGrid::AHexGrid()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// Attaching components (need meshes to be assigned in editor)
-	landMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LandMesh"));
-	RootComponent = landMesh;
-	pathMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathMesh"));
-	pathMesh->SetupAttachment(RootComponent);
-	pathStartMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathStartMesh"));
-	pathStartMesh->SetupAttachment(RootComponent);
-	pathEndMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathEndMesh"));
-	pathEndMesh->SetupAttachment(RootComponent);
-	LavaMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LavaMesh"));
-	LavaMesh->SetupAttachment(RootComponent);
-	WaterMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMesh"));
-	WaterMesh->SetupAttachment(RootComponent);
-	MossMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MossMesh"));
-	MossMesh->SetupAttachment(RootComponent);
-	IceMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("IceMesh"));
-	IceMesh->SetupAttachment(RootComponent);
-	RockMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RockMesh"));
-	RockMesh->SetupAttachment(RootComponent);
+	TileConfig.landMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LandMesh"));
+	RootComponent = TileConfig.landMesh;
+	TileConfig.pathMesh = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathMesh"));
+	TileConfig.pathMesh->SetupAttachment(RootComponent);
+	TileConfig.pathStartMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathStartMesh"));
+	TileConfig.pathStartMesh->SetupAttachment(RootComponent);
+	TileConfig.pathEndMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("PathEndMesh"));
+	TileConfig.pathEndMesh->SetupAttachment(RootComponent);
+	TileConfig.LavaMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("LavaMesh"));
+	TileConfig.LavaMesh->SetupAttachment(RootComponent);
+	TileConfig.WaterMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMesh"));
+	TileConfig.WaterMesh->SetupAttachment(RootComponent);
+	TileConfig.MossMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("MossMesh"));
+	TileConfig.MossMesh->SetupAttachment(RootComponent);
+	TileConfig.IceMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("IceMesh"));
+	TileConfig.IceMesh->SetupAttachment(RootComponent);
+	TileConfig.RockMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RockMesh"));
+	TileConfig.RockMesh->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -61,7 +61,7 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 FVector AHexGrid::ConstructLevel()
 {	// new method: generating grid depending on tile tags, generation methods update the tags
 	// generation methods only effect outcome of tile tags
-	if (bInitialiseGrid)
+	if (OperationConfig.bInitialiseGrid)
 	{
 		// clear any previous instances
 		_ClearGrid();
@@ -95,74 +95,74 @@ void AHexGrid::ConstructGrid()
 		FTransform SpawnTransform;
 
 		//need to account for land/path variations
-		if (Element.Value.TileTags.HasTag(LandTag))
+		if (Element.Value.TileTags.HasTag(TileConfig.LandTag))
 		{
 			
-			if (Element.Value.TileTags.HasTag(PathStartTag))
+			if (Element.Value.TileTags.HasTag(TileConfig.PathStartTag))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				pathStartMesh->AddInstance(SpawnTransform);
+				TileConfig.pathStartMesh->AddInstance(SpawnTransform);
 				continue;
 			}
-			if (Element.Value.TileTags.HasTag(PathEndTag))
+			if (Element.Value.TileTags.HasTag(TileConfig.PathEndTag))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				pathEndMesh->AddInstance(SpawnTransform);
+				TileConfig.pathEndMesh->AddInstance(SpawnTransform);
 				continue;
 			}
 			
 			// region additions
-			if (Element.Value.TileTags.HasTag(LavaTag))
+			if (Element.Value.TileTags.HasTag(TileConfig.LavaTag))
 			{
 				//SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				LavaMesh->AddInstance(SpawnTransform);
-			}else if(Element.Value.TileTags.HasTag(WaterTag)){
+				TileConfig.LavaMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(TileConfig.WaterTag)){
 				//SpawnTransform.SetScale3D(FVector(1.f,1.f,1.f));
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				WaterMesh->AddInstance(SpawnTransform);
-			}else if(Element.Value.TileTags.HasTag(MossTag)){
+				TileConfig.WaterMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(TileConfig.MossTag)){
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				MossMesh->AddInstance(SpawnTransform);
-			}else if(Element.Value.TileTags.HasTag(IceTag)){
+				TileConfig.MossMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(TileConfig.IceTag)){
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				IceMesh->AddInstance(SpawnTransform);
-			}else if(Element.Value.TileTags.HasTag(RockTag)){
+				TileConfig.IceMesh->AddInstance(SpawnTransform);
+			}else if(Element.Value.TileTags.HasTag(TileConfig.RockTag)){
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				RockMesh->AddInstance(SpawnTransform);
+				TileConfig.RockMesh->AddInstance(SpawnTransform);
 			}else if (!LandIndex.Contains(Element.Key))
 			{
 				SpawnTransform.SetScale3D(FVector(1.f,1.f,Element.Value.TileHeight));
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
 	
-				int32 TileIndex = landMesh->AddInstance(SpawnTransform);
+				int32 TileIndex = TileConfig.landMesh->AddInstance(SpawnTransform);
 				LandIndex.Add(Element.Key, TileIndex);
 			}
 		}
-		else if (Element.Value.TileTags.HasTag(PathTag))
+		else if (Element.Value.TileTags.HasTag(TileConfig.PathTag))
 		{
-			if (Element.Value.TileTags.HasTag(PathStartTag))
+			if (Element.Value.TileTags.HasTag(TileConfig.PathStartTag))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				pathStartMesh->AddInstance(SpawnTransform);
+				TileConfig.pathStartMesh->AddInstance(SpawnTransform);
 				continue;
 			}
-			if (Element.Value.TileTags.HasTag(PathEndTag))
+			if (Element.Value.TileTags.HasTag(TileConfig.PathEndTag))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				pathEndMesh->AddInstance(SpawnTransform);
+				TileConfig.pathEndMesh->AddInstance(SpawnTransform);
 				continue;
 			}
 			
 			if (!PathIndex.Contains(Element.Key))
 			{
 				SpawnTransform.SetLocation(Element.Value.WorldLocation);
-				int32 TileIndex = pathMesh->AddInstance(SpawnTransform);
+				int32 TileIndex = TileConfig.pathMesh->AddInstance(SpawnTransform);
 				PathIndex.Add(Element.Key, TileIndex);
 			}
 		}
@@ -172,7 +172,7 @@ void AHexGrid::ConstructGrid()
 
 void AHexGrid::GenerateGrid()
 {
-	if (bInitialiseGrid)
+	if (OperationConfig.bInitialiseGrid)
 	{
 		CalculateGrid();
 		ConstructGrid();
@@ -187,7 +187,7 @@ void AHexGrid::GeneratePath()
 	// change to allow tile type from algorithm generation
 	TArray<FVector> Path;
 	
-	if (bInitialiseGrid && bGeneratePath)
+	if (OperationConfig.bInitialiseGrid && OperationConfig.bGeneratePath)
 	{
 		// generates path then adds path tag to specified tiles
 		// create selection method
@@ -201,18 +201,18 @@ void AHexGrid::GeneratePath()
 				NewStatus.WorldLocation = TileStatus->WorldLocation;
 				//NewStatus.TileStates = PathTag;
 				NewStatus.TileTags.Reset();
-				NewStatus.TileTags.AddTag(PathTag);
+				NewStatus.TileTags.AddTag(TileConfig.PathTag);
 				// marking start and end points of path
 				if (Element == Path[0])
 				{
-					NewStatus.TileTags.AddTag(PathStartTag);
+					NewStatus.TileTags.AddTag(TileConfig.PathStartTag);
 				}else if (Element == (Path[Path.Num()-1])){
-					NewStatus.TileTags.AddTag(PathEndTag);
+					NewStatus.TileTags.AddTag(TileConfig.PathEndTag);
 					//EndPoint = Element;
 					GridInfo.EndPoint = Element;
 				}else
 				{
-					NewStatus.TileTags.AddTag(PathTag);
+					NewStatus.TileTags.AddTag(TileConfig.PathTag);
 				}
 				
 				
@@ -225,7 +225,7 @@ void AHexGrid::GeneratePath()
 
 void AHexGrid::GenerateLandscape()
 {
-	if (bInitialiseGrid && bGenerateLandscape)
+	if (OperationConfig.bInitialiseGrid && OperationConfig.bGenerateLandscape)
 	{
 		PerlinLandscape();
 	}else
@@ -235,7 +235,7 @@ void AHexGrid::GenerateLandscape()
 			//need check for valid transform
 			FTransform SpawnTransform;
 			SpawnTransform.SetLocation(GridInfo.GridTiles.Find(tiles.Key)->WorldLocation);
-			landMesh->UpdateInstanceTransform(tiles.Value, SpawnTransform);
+			TileConfig.landMesh->UpdateInstanceTransform(tiles.Value, SpawnTransform);
 		}
 	}
 	
@@ -396,17 +396,17 @@ void AHexGrid::PerlinLandscape()
 	for (auto& Tile : GridInfo.GridTiles)
 	{
 	
-		if (Tile.Value.TileTags.HasTag(LandTag))
+		if (Tile.Value.TileTags.HasTag(TileConfig.LandTag))
 		{
-			const float Frequency =  1.0f / FeatureScale;
+			const float Frequency =  1.0f / PerlinLandscapeConfig.FeatureScale;
 			// float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X * NoiseScale + 0.1, Tile.Key.Y * NoiseScale + 0.1))
-			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X , Tile.Key.Y ) * Frequency + NoiseOffset );
+			float NoiseValue = FMath::PerlinNoise2D(FVector2D(Tile.Key.X , Tile.Key.Y ) * Frequency + PerlinLandscapeConfig.NoiseOffset );
 			
 			// normalising, since above function returns a value from -1 to 1
 			NoiseValue = (NoiseValue + 1) / 2;
 
 			// adding to scale
-			NoiseValue = NoiseValue * HeightMultiplier;
+			NoiseValue = NoiseValue * PerlinLandscapeConfig.HeightMultiplier;
 			Tile.Value.TileHeight = NoiseValue;
 			
 		}
@@ -423,7 +423,7 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	for (int i = 0; i < PerlinWorms.NumWorms; i++)
 	{
 		//need to adjust seed, freq and other variables to get variations for each worm.
-		FPerlinWorm TestWorm(WormSP, PathTag);
+		FPerlinWorm TestWorm(WormSP, TileConfig.PathTag);
 		const float WormSeed = PerlinWorms.OriginalSeed + i * PerlinWorms.WormSeedOffset;
 		const float WormFreq = PerlinWorms.OriginalFreq + i * FMath::RandRange(PerlinWorms.WormFreqRange.X, PerlinWorms.WormFreqRange.Y);
 		
@@ -479,7 +479,7 @@ TArray<FVector> AHexGrid::PerlinPaths()
 
 void AHexGrid::VoronoiRegions()
 {
-	if (!bGenerateRegions) return;
+	if (!OperationConfig.bGenerateRegions) return;
 	
 	//TArray<FVector> _Regions;
 	TMap<FVector, ERegionType> Regions;
@@ -552,14 +552,14 @@ void AHexGrid::CalculateGrid()
 				FVector GridCoord = FVector(x, y, 0.0f);
 				FVector TileLocation;
 				TileLocation.X = _CalculateTileHeight() * y;
-				TileLocation.Y = (TileRadius * 2) * 0.75 * x;
+				TileLocation.Y = (TileConfig.TileRadius * 2) * 0.75 * x;
 				TileLocation.Z = 0;
 
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
 				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
 				//Tile.TileStates = LandTag;
-				Tile.TileTags.AddTag(LandTag);
+				Tile.TileTags.AddTag(TileConfig.LandTag);
 
 				GridInfo.GridTiles.Add(GridCoord, Tile);
 			}
@@ -569,14 +569,14 @@ void AHexGrid::CalculateGrid()
 				FVector GridCoord = FVector(x, y, 0.0f);
 				FVector TileLocation;
 				TileLocation.X = (_CalculateTileHeight() * y) + (_CalculateTileHeight() / 2);
-				TileLocation.Y = (TileRadius * 2) * 0.75 * x;
+				TileLocation.Y = (TileConfig.TileRadius * 2) * 0.75 * x;
 				TileLocation.Z = 0;
 
 				FTilePropertiesStruct Tile;
 				Tile.WorldLocation = TileLocation;
 				//Tile.TileStates = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Initialised");
 				//Tile.TileStates = LandTag;
-				Tile.TileTags.AddTag(LandTag);
+				Tile.TileTags.AddTag(TileConfig.LandTag);
 
 				GridInfo.GridTiles.Add(GridCoord, Tile);
 			}
@@ -586,7 +586,7 @@ void AHexGrid::CalculateGrid()
 	//if (GridInfo.Contains(StartPoint)) GridInfo[StartPoint].TileStates = PathStartTag;
 	if (GridInfo.GridTiles.Contains(GridInfo.StartPoint))
 	{
-		GridInfo.GridTiles[GridInfo.StartPoint].TileTags.AddLeafTag(PathStartTag);
+		GridInfo.GridTiles[GridInfo.StartPoint].TileTags.AddLeafTag(TileConfig.PathStartTag);
 	}
 }
 
@@ -732,15 +732,15 @@ FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
 	switch (Type)
 	{
 		case ERegionType::Lava:
-			return LavaTag;
+			return TileConfig.LavaTag;
 		case ERegionType::Water:
-			return WaterTag;
+			return TileConfig.WaterTag;
 		case ERegionType::Moss:
-			return MossTag;
+			return TileConfig.MossTag;
 		case ERegionType::Ice:
-			return IceTag;
+			return TileConfig.IceTag;
 		case ERegionType::Rock:
-			return RockTag;
+			return TileConfig.RockTag;
 		default:
 			return FGameplayTag::EmptyTag;
 	}
@@ -806,30 +806,30 @@ TPair<bool, ETileNeighbour> AHexGrid::PerlinWorm(const FVector& CurrentTile, con
 
 float AHexGrid::_CalculateTileHeight() const
 {
-	return (TileRadius * sqrt(3));
+	return (TileConfig.TileRadius * sqrt(3));
 }
 
 void AHexGrid::_clearPath()
 {
-	pathMesh->ClearInstances();
+	TileConfig.pathMesh->ClearInstances();
 	PathIndex.Empty();
 }
 
 void AHexGrid::_clearLand()
 {
-	pathStartMesh->ClearInstances();
-	pathEndMesh->ClearInstances();
-	landMesh->ClearInstances();
+	TileConfig.pathStartMesh->ClearInstances();
+	TileConfig.pathEndMesh->ClearInstances();
+	TileConfig.landMesh->ClearInstances();
 	LandIndex.Empty();
 }
 
 void AHexGrid::_clearRegions() const
 {
-	LavaMesh->ClearInstances();
-	WaterMesh->ClearInstances();
-	MossMesh->ClearInstances();
-	IceMesh->ClearInstances();
-	RockMesh->ClearInstances();
+	TileConfig.LavaMesh->ClearInstances();
+	TileConfig.WaterMesh->ClearInstances();
+	TileConfig.MossMesh->ClearInstances();
+	TileConfig.IceMesh->ClearInstances();
+	TileConfig.RockMesh->ClearInstances();
 }
 
 void AHexGrid::_ClearGrid()

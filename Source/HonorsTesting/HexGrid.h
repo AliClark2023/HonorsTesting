@@ -83,105 +83,41 @@ private:
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
 	//TPair<bool, ETileNeighbour>  PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const;
 public:
-	// map tile properties (change to static meshes?)
+	// Map tile properties
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Config")
+	FTileConfig TileConfig;
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	float TileRadius = 100.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* landMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* pathMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* pathStartMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* pathEndMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* LavaMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* WaterMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* MossMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* IceMesh;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tiles")
-	UInstancedStaticMeshComponent* RockMesh;
-
-	// move to other file?
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag PathTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Path");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag LandTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Landscape");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag PathStartTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathStart");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag PathEndTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.PathEnd");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag LavaTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Lava");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag IceTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Ice");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag MossTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Moss");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
-	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
-	
-
 	// Grid Specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties");
 	FGridConfig GridConfig;
-
-	/*
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
-	int Columns = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
-	int Rows = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
-	int PathSize = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
-	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
-	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
-	*/
-
-	// Perlin Landscape Specific
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "50.0"))
-	float HeightMultiplier = 1.f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1"))
-	float FeatureScale = 0.4f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
-	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
-
+	
 	/*
 	 * Algorithms
 	 */
+	// DW specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
+	FDrunkardConfig DrunkardConfig;
+	
+	// Perlin Landscape Specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
+	FPerlinLandscapeConfig PerlinLandscapeConfig;
 	
 	// Perlin path specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FWormConfig PerlinWorms;
-
-	// DW specific
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
-	FDrunkardConfig DrunkardConfig;
-
+	
 	//Voronoi Specific
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;
 	
 	UPROPERTY(BlueprintReadOnly, Category = "Generation Area")
 	//TMap<FVector, FTilePropertiesStruct> GridInfo;
 	FGridProperties GridInfo;
 
-	// enabling each generation type
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bInitialiseGrid;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bGeneratePath;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bGenerateLandscape;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Testing Generation")
-	bool bGenerateRegions;
+	// Generation operations
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	FOperationConfig OperationConfig;
+
 private:
 	// holds grid coord and its relative index number for instance meshes
 	TMap<FVector, int32> LandIndex;
