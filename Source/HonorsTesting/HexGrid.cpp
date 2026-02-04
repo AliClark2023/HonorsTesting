@@ -267,31 +267,10 @@ TArray<FVector> AHexGrid::Walker()
 			while (_CurrentSteps < PathSize && !_pathBlocked)
 			{
 				// DW method
+				TPair<bool, ETileNeighbour> NeighbourTile = DrunkardsWalk(_VisitedTiles);
+				ETileNeighbour _ChosenNeighbour = NeighbourTile.Value;
+
 				/*
-				const int _MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
-				ETileNeighbour _ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
-				
-
-				// re-selects another neighbour if already visited
-				while (_VisitedTiles.Contains(_ChosenNeighbour))
-				{
-					if (_VisitedTiles.Num() == _MaxChoice)
-					{
-						// break current iteration
-						_pathBlocked = true;
-						break;
-					}else
-					{
-						_ChosenNeighbour = static_cast<ETileNeighbour>(FMath::RandRange(0, _MaxChoice));
-					}
-					
-				}
-
-				*/
-				
-				// DW or PW method
-				ETileNeighbour _ChosenNeighbour;
-				TPair<bool, ETileNeighbour> NeighbourTile;
 				if (SelectDrunkardsWalk)
 				{
 					NeighbourTile = DrunkardsWalk(_VisitedTiles);
@@ -301,15 +280,13 @@ TArray<FVector> AHexGrid::Walker()
 					NeighbourTile = PerlinWorm(_CurrentTile, _VisitedTiles);
 					_ChosenNeighbour = NeighbourTile.Value;
 				}
+				*/
 				
 				if (NeighbourTile.Key)
 				{
 					_pathBlocked = true;
 					break;
 				}
-				
-				//testing
-				//_ChosenNeighbour = static_cast<ETileNeighbour>(0);
 				
 				TPair<FVector, bool> _Neighbour;
 
@@ -636,12 +613,7 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::North;
 	FVector TileNeighbour(UTileDirectionUtils::NorthNeighbourCoords(CurrentTile));
-	/*
-	TileNeighbour.X = CurrentTile.X;
-	TileNeighbour.Y = CurrentTile.Y + 1;
-	TileNeighbour.Z = CurrentTile.Z;
-	*/
-
+	
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
@@ -651,33 +623,12 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 	
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
 }
 
 TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::Northeast;
 	FVector TileNeighbour(UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile));
-	/*
-	if (static_cast<int>(CurrentTile.X) % 2 == 0)
-	{
-		TileNeighbour.X = CurrentTile.X + 1;
-		TileNeighbour.Y = CurrentTile.Y;
-		TileNeighbour.Z = CurrentTile.Z;
-		
-	}else
-	{
-		TileNeighbour.X = CurrentTile.X + 1;
-		TileNeighbour.Y = CurrentTile.Y + 1;
-		TileNeighbour.Z = CurrentTile.Z;
-	}
-	*/
 	
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
@@ -688,33 +639,13 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 	
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
 }
 
 TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::Southeast;
 	FVector TileNeighbour(UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile));
-	/*
-	if (static_cast<int>(CurrentTile.X) % 2 == 0)
-	{
-		TileNeighbour.X = CurrentTile.X + 1;
-		TileNeighbour.Y = CurrentTile.Y - 1;
-		TileNeighbour.Z = CurrentTile.Z;
-		
-	}else
-	{
-		TileNeighbour.X = CurrentTile.X + 1;
-		TileNeighbour.Y = CurrentTile.Y;
-		TileNeighbour.Z = CurrentTile.Z;
-	}
-	*/
+
 
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
@@ -724,26 +655,14 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
-
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
+	
 }
 
 TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::South;
 	FVector TileNeighbour(UTileDirectionUtils::SouthNeighbourCoords(CurrentTile));
-	/*
-	TileNeighbour.X = CurrentTile.X;
-	TileNeighbour.Y = CurrentTile.Y - 1;
-	TileNeighbour.Z = CurrentTile.Z;
-	*/
-
+	
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
@@ -752,34 +671,13 @@ TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
-
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
+	
 }
 
 TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::Southwest;
 	FVector TileNeighbour(UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile));
-	/*
-	if (static_cast<int>(CurrentTile.X) % 2 == 0)
-	{
-		TileNeighbour.X = CurrentTile.X - 1;
-		TileNeighbour.Y = CurrentTile.Y - 1;
-		TileNeighbour.Z = CurrentTile.Z;
-		
-	}else
-	{
-		TileNeighbour.X = CurrentTile.X - 1;
-		TileNeighbour.Y = CurrentTile.Y;
-		TileNeighbour.Z = CurrentTile.Z;
-	}
-	*/
 
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
@@ -789,35 +687,13 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
-
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
 }
 
 TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) const
 {
 	constexpr ETileNeighbour Type = ETileNeighbour::Northwest;
 	FVector TileNeighbour(UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile));
-	/*
-	if (static_cast<int>(CurrentTile.X) % 2 == 0)
-	{
-		TileNeighbour.X = CurrentTile.X - 1;
-		TileNeighbour.Y = CurrentTile.Y;
-		TileNeighbour.Z = CurrentTile.Z;
-		
-	}else
-	{
-		TileNeighbour.X = CurrentTile.X - 1;
-		TileNeighbour.Y = CurrentTile.Y + 1;
-		TileNeighbour.Z = CurrentTile.Z;
-	}
-	*/
-
+	
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
@@ -826,14 +702,7 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
-
-	/*
-	if (GridInfo.GridTiles.Contains(TileNeighbour) && !TileOnBoundary(TileNeighbour))
-	{
-		return TPair<FVector, bool>(TileNeighbour, true);
-	}
-	return TPair<FVector, bool>(TileNeighbour, false);
-	*/
+	
 }
 
 bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
@@ -888,6 +757,8 @@ TPair<bool, ETileNeighbour> AHexGrid::DrunkardsWalk(const TArray<ETileNeighbour>
 	return Result;
 }
 
+// old function not in use
+/*
 TPair<bool, ETileNeighbour> AHexGrid::PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const
 {
 	const int MaxChoice = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
@@ -918,7 +789,7 @@ TPair<bool, ETileNeighbour> AHexGrid::PerlinWorm(const FVector& CurrentTile, con
 	const TPair<bool, ETileNeighbour> Result(PathBlocked,ChosenNeighbour);
 	return Result;
 }
-
+*/
 
 float AHexGrid::_CalculateTileHeight() const
 {
@@ -939,7 +810,7 @@ void AHexGrid::_clearLand()
 	LandIndex.Empty();
 }
 
-void AHexGrid::_clearRegions()
+void AHexGrid::_clearRegions() const
 {
 	LavaMesh->ClearInstances();
 	WaterMesh->ClearInstances();

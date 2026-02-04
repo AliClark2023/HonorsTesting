@@ -67,7 +67,7 @@ private:
 	void _clearPath();
 	// also clears path start point atm
 	void _clearLand();
-	void _clearRegions();
+	void _clearRegions() const;
 	// add map to parameter and make a static const function? then move to calculation header file
 	TPair<FVector, bool> GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
@@ -81,7 +81,7 @@ private:
 
 	// walker algorithms
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
-	TPair<bool, ETileNeighbour>  PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const;
+	//TPair<bool, ETileNeighbour>  PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const;
 public:
 	// map tile properties (change to static meshes?)
 	

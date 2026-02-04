@@ -31,31 +31,10 @@ FVector UTileDirectionUtils::GetOppositeNeighbour(ETileNeighbour CurrentNeighbou
 		return CurrentTile;
 	}
 }
-/*
-FVector UTileDirectionUtils::GetNeighbourPos(const ETileNeighbour Neighbour, const FVector& CurrentTile)
-{
-	switch (Neighbour)
-	{
-	case ETileNeighbour::North:
-		return  UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
-	case ETileNeighbour::Northeast:
-		return  UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile);
-	case ETileNeighbour::Southeast:
-		return  UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile);
-	case ETileNeighbour::South:
-		return  UTileDirectionUtils::SouthNeighbourCoords(CurrentTile);
-	case ETileNeighbour::Southwest:
-		return  UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile);
-	case ETileNeighbour::Northwest:
-		return  UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile);
-	default:
-		return UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
-	}
-}
-*/
 
 /*
- * Following Functions assume Even-Q hex grid
+ * Following functions assume an even-Q grid formation
+ * Adjust these if changing tile formation.
  */
 
 FVector UTileDirectionUtils::NorthNeighbourCoords(const FVector& CurrentTile)
