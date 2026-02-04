@@ -448,9 +448,11 @@ TArray<FVector> AHexGrid::PerlinPaths()
 		Worms.Add(TestWorm);
 		// need to modify starting point of next worm
 		// starting new worm at end of old worm (for now, change to random point along its length)
-		WormSP = TestWorm.GetPointOnSegment();
+		//WormSP = TestWorm.GetPointOnSegment();
 
-		
+		// random starting point within grid (Produces best result but with no guarantee that path is contiguous)
+		WormSP.X = FMath::RandRange(1,Columns - 2);
+		WormSP.Y = FMath::RandRange(1,Rows - 2);
 	}
 	
 	// updating grid info with worm locations

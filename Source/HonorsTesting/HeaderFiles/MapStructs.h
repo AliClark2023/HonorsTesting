@@ -51,6 +51,7 @@ struct FGridProperties
 	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
 };
 
+// describes parameters to adjust grid
 
 // describe worm characteristics for perlin worms
 USTRUCT(BlueprintType)
