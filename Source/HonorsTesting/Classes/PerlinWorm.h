@@ -33,6 +33,12 @@ public:
 		X = Coord.X;
 		Y = Coord.Y;
 	};
+
+	//returns random point of worm segment
+	FVector2D GetPointOnSegment()
+	{
+		return Segments[FMath::RandRange(0, Length - 1)];
+	};
 	
 	TArray<FVector2D> Display(){return Segments;};
 	int GetX() const {return X;};

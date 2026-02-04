@@ -65,6 +65,10 @@ struct FWormConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))
 	int OriginalSeed = 12345;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))
-	float Freq = 0.1;
+	int WormSeedOffset = 123;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0", ClampMax = "5"))
+	float OriginalFreq = 0.1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0", ClampMax = "5"))
+	FVector2D WormFreqRange = FVector2D(0.1f, 1.2f);
 	
 };

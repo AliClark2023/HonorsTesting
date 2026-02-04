@@ -422,17 +422,19 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	
 	for (int i = 0; i < PerlinWorms.NumWorms; i++)
 	{
+		//need to adjust seed, freq and other variables to get variations for each worm.
 		FPerlinWorm TestWorm(WormSP, PathTag);
+		const float WormSeed = PerlinWorms.OriginalSeed + i * PerlinWorms.WormSeedOffset;
+		const float WormFreq = PerlinWorms.OriginalFreq + i * FMath::RandRange(PerlinWorms.WormFreqRange.X, PerlinWorms.WormFreqRange.Y);
 		
 		for (int j = 0; j < PerlinWorms.Length; j++)
 		{
-			float Noise = FMath::PerlinNoise2D(FVector2D((TestWorm.GetX() + PerlinWorms.OriginalSeed) * PerlinWorms.Freq,
-				(TestWorm.GetY() + PerlinWorms.OriginalSeed) * PerlinWorms.Freq));
+			float Noise = FMath::PerlinNoise2D(FVector2D((TestWorm.GetX() + WormSeed) * WormFreq,
+				(TestWorm.GetY() + WormSeed) * WormFreq));
 			// normalising (0 to 1) then applying it to degrees
 			Angle = ((Noise + 1) / 2) * 360;
 		
 			ETileNeighbour Dir = UTileDirectionUtils::GetDirectionFromAngle(Angle);
-			//FVector NeighbourPos = UTileDirectionUtils::GetNeighbourPos(Dir, FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
 			TPair<FVector,bool> Neighbour = GetNeighbour(Dir,FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
 
 			// Valid grid coord check
@@ -446,7 +448,9 @@ TArray<FVector> AHexGrid::PerlinPaths()
 		Worms.Add(TestWorm);
 		// need to modify starting point of next worm
 		// starting new worm at end of old worm (for now, change to random point along its length)
-		WormSP = FVector2D(TestWorm.GetX(), TestWorm.GetY());
+		WormSP = TestWorm.GetPointOnSegment();
+
+		
 	}
 	
 	// updating grid info with worm locations
