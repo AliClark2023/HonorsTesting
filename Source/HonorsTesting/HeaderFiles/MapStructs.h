@@ -51,9 +51,40 @@ struct FGridProperties
 	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
 };
 
-// describes parameters to adjust grid
+// Grid specific attributes
+USTRUCT(BlueprintType)
+struct FGridConfig
+{
+	GENERATED_BODY()
+	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties", meta = (ClampMin = "1", ClampMax = "100"))
+	int Columns = 0;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties", meta = (ClampMin = "1", ClampMax = "100"))
+	int Rows = 0;
 
-// describe worm characteristics for perlin worms
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Grid Properties", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
+};
+
+/*
+ * Algorithm Structs
+ */
+// Parameters governing Drunkard Walk
+USTRUCT(BlueprintType)
+struct FDrunkardConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DrunkardConfig", meta = (ClampMin = "1", ClampMax = "1000"))
+	int PathSize = 5;
+	// used to limit algorithm and prevent UE from crashing
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DrunkardConfig", meta = (ClampMin = "1", ClampMax = "1000"))
+	int IterationAttempts = 10;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DrunkardConfig")
+	int CurrentIteration = 0;
+};
+// Parameters governing Perlin Worms
 USTRUCT(BlueprintType)
 struct FWormConfig
 {
@@ -63,6 +94,8 @@ struct FWormConfig
 	int NumWorms = 5;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
 	int Length = 10;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
+	bool RandomWormStart = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))
 	int OriginalSeed = 12345;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0"))

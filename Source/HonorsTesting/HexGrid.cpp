@@ -249,7 +249,7 @@ TArray<FVector> AHexGrid::Walker()
 	TArray<FVector> _TestPath;
 	bool _generate = true;
 	
-	while (_attempts <= IterationAttempts && _generate)
+	while (_attempts <= DrunkardConfig.IterationAttempts && _generate)
 	{
 		FVector _CurrentTile;
 		_TestPath.Empty();
@@ -264,7 +264,7 @@ TArray<FVector> AHexGrid::Walker()
 			TArray<ETileNeighbour> _VisitedTiles;
 			bool _pathBlocked = false;
 			
-			while (_CurrentSteps < PathSize && !_pathBlocked)
+			while (_CurrentSteps < DrunkardConfig.PathSize && !_pathBlocked)
 			{
 				// DW method
 				TPair<bool, ETileNeighbour> NeighbourTile = DrunkardsWalk(_VisitedTiles);
@@ -375,7 +375,7 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				}
 
-				if (_TestPath.Num() >= PathSize)
+				if (_TestPath.Num() >= DrunkardConfig.PathSize)
 				{
 					// stop loops, successful path generation
 					_generate = false;
@@ -385,7 +385,7 @@ TArray<FVector> AHexGrid::Walker()
 		}
 	}
 	
-	CurrentIteration = _attempts;
+	DrunkardConfig.CurrentIteration = _attempts;
 	return _TestPath;
 }
 
@@ -447,12 +447,19 @@ TArray<FVector> AHexGrid::PerlinPaths()
 		}
 		Worms.Add(TestWorm);
 		// need to modify starting point of next worm
-		// starting new worm at end of old worm (for now, change to random point along its length)
-		//WormSP = TestWorm.GetPointOnSegment();
+		if (PerlinWorms.RandomWormStart)
+		{
+			// random starting point within grid (Produces best result but with no guarantee that path is contiguous)
+			WormSP.X = FMath::RandRange(1,GridConfig.Columns - 2);
+			WormSP.Y = FMath::RandRange(1,GridConfig.Rows - 2);
+		}else
+		{
+			// starting new worm at random point of previous worm
+			WormSP = TestWorm.GetPointOnSegment();
+		}
+		
 
-		// random starting point within grid (Produces best result but with no guarantee that path is contiguous)
-		WormSP.X = FMath::RandRange(1,Columns - 2);
-		WormSP.Y = FMath::RandRange(1,Rows - 2);
+		
 	}
 	
 	// updating grid info with worm locations
@@ -495,8 +502,8 @@ void AHexGrid::VoronoiRegions()
 	
 	for (int i = 0; i < NumberOfRegions; i++)
 	{
-		NewCoord.X = FMath::RandRange(0,Columns);
-		NewCoord.Y = FMath::RandRange(0,Rows);
+		NewCoord.X = FMath::RandRange(0,GridConfig.Columns);
+		NewCoord.Y = FMath::RandRange(0,GridConfig.Rows);
 		ERegionType ChosenRegion = static_cast<ERegionType>(FMath::RandRange(0, MaxRegions));
 		
 		Regions.Add(NewCoord, ChosenRegion);
@@ -535,9 +542,9 @@ void AHexGrid::CalculateGrid()
 {
 	if (!GridInfo.GridTiles.IsEmpty()) GridInfo.GridTiles.Empty();
 	
-	for (int y = 0; y < Rows; y++)
+	for (int y = 0; y < GridConfig.Rows; y++)
 	{
-		for (int x = 0; x < Columns; x++)
+		for (int x = 0; x < GridConfig.Columns; x++)
 		{
 			if (x % 2 == 0)
 			{
@@ -713,8 +720,8 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 
 bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
 {
-	if (CurrentTile.X == 0 || CurrentTile.X == Columns - 1) return true;
-	if (CurrentTile.Y == 0 || CurrentTile.Y == Rows - 1) return true;
+	if (CurrentTile.X == 0 || CurrentTile.X == GridConfig.Columns - 1) return true;
+	if (CurrentTile.Y == 0 || CurrentTile.Y == GridConfig.Rows - 1) return true;
 
 	return false;
 	

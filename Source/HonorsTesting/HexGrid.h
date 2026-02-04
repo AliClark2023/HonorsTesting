@@ -126,39 +126,46 @@ public:
 	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Tags")
 	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
+	
 
-	// change to enum for walker selection, reduce these down to structs for carity
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
-	bool SelectDrunkardsWalk = true;
+	// Grid Specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Grid Properties");
+	FGridConfig GridConfig;
+
+	/*
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Columns = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "100"))
 	int Rows = 0;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
 	int PathSize = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
+	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
+	*/
+
+	// Perlin Landscape Specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "50.0"))
 	float HeightMultiplier = 1.f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1"))
 	float FeatureScale = 0.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
 	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
-	//Perlin
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0"))
-	float PerlinSeed = 12345.0f;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "0.0", ClampMax = "1000"))
-	float PerlinFreq = 0.1f;
+
+	/*
+	 * Algorithms
+	 */
 	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area")
+	// Perlin path specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FWormConfig PerlinWorms;
-	
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "1000"))
-	int IterationAttempts = 10;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area")
-	int CurrentIteration = 0;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
-	FVector PathStartPoint = FVector(0.0f,0.0f,0.0f);
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Generation Area", meta = (ClampMin = "1.0", ClampMax = "1000.0"))
-	FVector EndPoint = FVector(0.0f,0.0f,0.0f);
+
+	// DW specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
+	FDrunkardConfig DrunkardConfig;
+
+	//Voronoi Specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Generation Area", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;
 	
