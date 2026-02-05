@@ -232,6 +232,8 @@ void AHexGrid::GeneratePath()
 		// only checks surrounding tiles for islands when specified
 		if (PerlinWorms.AreIslands)
 		{
+			PerlinWorms.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TileConfig.PathTag );
+			/*
 			for (auto& Element : GridInfo.GridTiles)
 			{
 				if (Element.Value.TileTags.HasTag(TileConfig.PathTag))
@@ -239,12 +241,13 @@ void AHexGrid::GeneratePath()
 					continue;
 				}
 				// need to check boundary + 1
-				if (TileBeforeBoundary(Element.Key))
+				if (UTileDirectionUtils::IsTileBeforeBoundary(GridConfig.Columns, GridConfig.Rows, Element.Key))
 				{
 					continue;
 				}
 				JoinIslands(Element.Key);
 			}
+			*/
 		}
 	}
 }
@@ -617,6 +620,9 @@ void AHexGrid::SetStartPoint(FVector gridPos)
 // should only be used on tiles 1 away from boundary
 void AHexGrid::JoinIslands(FVector CurrentTile)
 {
+	// new method (uses algorithms* to identify islands then join them)
+	
+	// old method (not practical)
 	// check surrounding tiles for paths
 	int PathCount = 0;
 	for (int i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums(); i++)
@@ -682,7 +688,7 @@ TPair<FVector, bool> AHexGrid::NorthNeighbour(const FVector& CurrentTile) const
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
@@ -698,7 +704,7 @@ TPair<FVector, bool> AHexGrid::NorthEastNeighbour(const FVector& CurrentTile) co
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
@@ -715,7 +721,7 @@ TPair<FVector, bool> AHexGrid::SouthEastNeighbour(const FVector& CurrentTile) co
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
@@ -731,7 +737,7 @@ TPair<FVector, bool> AHexGrid::SouthNeighbour(const FVector& CurrentTile) const
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
@@ -747,7 +753,7 @@ TPair<FVector, bool> AHexGrid::SouthWestNeighbour(const FVector& CurrentTile) co
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows,TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
@@ -762,14 +768,14 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 	if (!GridInfo.GridTiles.Contains(TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-	}else if (TileOnBoundary(TileNeighbour))
+	}else if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, TileNeighbour))
 	{
 		return TPair<FVector, bool>(UTileDirectionUtils::GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 	
 }
-
+/*
 bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
 {
 	if (CurrentTile.X == 0 || CurrentTile.X == GridConfig.Columns - 1) return true;
@@ -787,7 +793,7 @@ bool AHexGrid::TileBeforeBoundary(const FVector& CurrentTile) const
 	return false;
 	
 }
-
+*/
 FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
 {
 	switch (Type)

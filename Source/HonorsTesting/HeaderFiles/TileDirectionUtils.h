@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "MapStructs.h"
 #include "TileDirectionUtils.generated.h"
 
 // Will include all neighbouring tile calculations and classes
@@ -29,4 +30,11 @@ public:
 	static FVector SouthEastNeighbourCoords(const FVector& CurrentTile);
 	static FVector SouthWestNeighbourCoords(const FVector& CurrentTile);
 	static FVector NorthWestNeighbourCoords(const FVector& CurrentTile);
+	static bool IsTileBeforeBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
+	static bool IsTileOnBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
+
+	//  path algorithm utilities
+	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind);
+	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
+	static void Dfs(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 };

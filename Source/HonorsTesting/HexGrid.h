@@ -78,8 +78,8 @@ private:
 	TPair<FVector, bool> SouthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
-	bool TileOnBoundary(const FVector& CurrentTile) const;
-	bool TileBeforeBoundary(const FVector& CurrentTile) const;
+	//bool TileOnBoundary(const FVector& CurrentTile) const;
+	//bool TileBeforeBoundary(const FVector& CurrentTile) const;
 	FGameplayTag GetRegionTag(ERegionType Type) const;
 
 	// walker algorithms

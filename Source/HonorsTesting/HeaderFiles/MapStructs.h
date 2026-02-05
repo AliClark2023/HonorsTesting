@@ -177,7 +177,8 @@ struct FWormConfig
 	float OriginalFreq = 0.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0", ClampMax = "5"))
 	FVector2D WormFreqRange = FVector2D(0.1f, 1.2f);
-	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WormConfig")
+	int NumberOfIslands =0;
 };
 
 // Parameters governing Perlin landscape
