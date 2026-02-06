@@ -119,6 +119,7 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 	int n = GridSize.X;
 	int m = GridSize.Y;
 	int Islands = 0;
+	TArray<FVector> IslandCentroids;
 	
 	// Matrix to track visited cells
 	TArray<TArray<bool>> Visited;
@@ -132,7 +133,8 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 	{
 		if (Tile.Value.TileTags.HasTag(TagToFind) && !Visited[Tile.Key.X][Tile.Key.Y])
 		{
-			BFS(GridTiles, Tile.Key, Visited, TagToFind, GridSize);
+			IslandCentroids.Add(BFS(GridTiles, Tile.Key, Visited, TagToFind, GridSize));
+			// Connected island
 			Islands++;
 		}
 	}
@@ -155,12 +157,14 @@ bool UTileDirectionUtils::IsTileSafe(TMap<FVector, FTilePropertiesStruct>& GridT
 	return false;
 }
 
-void UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
+// detects all adjoining tiles forming an island
+FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
 	TArray<TArray<bool>>& Visited, FGameplayTag TagToFind, FVector2D GridSize)
 {
 	TQueue<FVector> VisitedQueue;
 	VisitedQueue.Enqueue(TileToVisit);
 	Visited[TileToVisit.X][TileToVisit.Y] = true;
+	TArray<FVector> IslandTiles;
 
 	// exploring all adjacent tiles
 	while (!VisitedQueue.IsEmpty())
@@ -193,16 +197,32 @@ void UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles, F
 				NeighbourTile = UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile);
 				break;
 			}
-		
+
+			// if tile is a specified tile type add to queue and mark visited
 			if (IsTileSafe(GridTiles, NeighbourTile, Visited, TagToFind, GridSize))
 			{
-				//mark as visited, add to queue, mark as visited
+				//mark as visited, add to queue
 				Visited[NeighbourTile.X][NeighbourTile.Y] = true;
 				VisitedQueue.Enqueue(NeighbourTile);
+
+				// saving location
+				IslandTiles.Emplace(NeighbourTile);
 			}
 		}
 	}
-	
+
+	// save locations of all tiles in islands
+	// calculate centroid of island
+	// return this value.
+	FVector SumOfTiles = FVector::ZeroVector;
+	for (FVector Tile : IslandTiles)
+	{
+		SumOfTiles += Tile;
+	}
+
+	FIntVector;
+	const FVector IslandCentre = SumOfTiles / IslandTiles.Num();
+	return IslandCentre;
 }
 
 
