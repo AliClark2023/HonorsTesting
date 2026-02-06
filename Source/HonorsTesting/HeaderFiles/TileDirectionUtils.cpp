@@ -89,10 +89,18 @@ FVector UTileDirectionUtils::NorthWestNeighbourCoords(const FVector& CurrentTile
 // checks if tile is within the boundary - 1
 bool UTileDirectionUtils::IsTileBeforeBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile)
 {
+	// old (broken?) method
+	/*
 	if (CurrentTile.X <= 1 || CurrentTile.X >= GridColumn - 2) return true;
 	if (CurrentTile.Y <= 1 || CurrentTile.Y >= GridRow - 2) return true;
-
 	return false;
+	*/
+
+	// new method
+	bool InBounds = CurrentTile.X >=1 && CurrentTile.X < GridColumn - 1 &&
+		CurrentTile.Y >= 1 && CurrentTile.Y < GridRow - 1;
+	return InBounds;
+
 }
 // checks if tile on the boundary
 bool UTileDirectionUtils::IsTileOnBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile)
@@ -110,6 +118,8 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 {
 	int n = GridSize.X;
 	int m = GridSize.Y;
+	int Islands = 0;
+	
 	// Matrix to track visited cells
 	TArray<TArray<bool>> Visited;
 	Visited.SetNum(n);
@@ -117,16 +127,16 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 	{
 		Visited[i].SetNumZeroed(m);
 	}
-
-	int Islands = 0;
+	
 	for (auto& Tile : GridTiles)
 	{
 		if (Tile.Value.TileTags.HasTag(TagToFind) && !Visited[Tile.Key.X][Tile.Key.Y])
 		{
-			Dfs(GridTiles, Tile.Key, Visited, TagToFind, GridSize);
+			BFS(GridTiles, Tile.Key, Visited, TagToFind, GridSize);
 			Islands++;
 		}
 	}
+	
 	return Islands;
 }
 
@@ -145,44 +155,55 @@ bool UTileDirectionUtils::IsTileSafe(TMap<FVector, FTilePropertiesStruct>& GridT
 	return false;
 }
 
-void UTileDirectionUtils::Dfs(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
-	TArray<TArray<bool>> &Visited, FGameplayTag TagToFind,FVector2D GridSize)
+void UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
+	TArray<TArray<bool>>& Visited, FGameplayTag TagToFind, FVector2D GridSize)
 {
+	TQueue<FVector> VisitedQueue;
+	VisitedQueue.Enqueue(TileToVisit);
 	Visited[TileToVisit.X][TileToVisit.Y] = true;
 
-	// need to loop through all possible neighbours
-	FVector NeighbourTile;
-	int enumNum = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
-	for (int i = 0; i < enumNum; i++)
+	// exploring all adjacent tiles
+	while (!VisitedQueue.IsEmpty())
 	{
-		switch (StaticCast<ETileNeighbour>(i))
+		FVector CurrentTile ;
+		if (!VisitedQueue.Dequeue(CurrentTile)) break;
+		
+		FVector NeighbourTile;
+		int enumNum = StaticEnum<ETileNeighbour>()->NumEnums() - 1;
+		for (int i = 0; i < enumNum; i++)
 		{
+			switch (StaticCast<ETileNeighbour>(i))
+			{
 			case ETileNeighbour::North:
-				NeighbourTile = UTileDirectionUtils::NorthNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
 				break;
 			case ETileNeighbour::Northeast:
-				NeighbourTile = UTileDirectionUtils::NorthEastNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile);
 				break;
 			case ETileNeighbour::Southeast:
-				NeighbourTile = UTileDirectionUtils::SouthEastNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile);
 				break;
 			case ETileNeighbour::South:
-				NeighbourTile = UTileDirectionUtils::SouthNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::SouthNeighbourCoords(CurrentTile);
 				break;
 			case ETileNeighbour::Southwest:
-				NeighbourTile = UTileDirectionUtils::SouthWestNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile);
 				break;
 			default:
-				NeighbourTile = UTileDirectionUtils::NorthWestNeighbourCoords(TileToVisit);
+				NeighbourTile = UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile);
 				break;
-		}
+			}
 		
-		if (IsTileSafe(GridTiles, NeighbourTile, Visited, TagToFind, GridSize))
-		{
-			Dfs(GridTiles, NeighbourTile, Visited, TagToFind, GridSize);
+			if (IsTileSafe(GridTiles, NeighbourTile, Visited, TagToFind, GridSize))
+			{
+				//mark as visited, add to queue, mark as visited
+				Visited[NeighbourTile.X][NeighbourTile.Y] = true;
+				VisitedQueue.Enqueue(NeighbourTile);
+			}
 		}
 	}
-
 	
 }
+
+
 

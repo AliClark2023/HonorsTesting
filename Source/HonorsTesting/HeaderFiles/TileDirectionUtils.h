@@ -36,5 +36,5 @@ public:
 	//  path algorithm utilities
 	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind);
 	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
-	static void Dfs(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
+	static void BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 };
