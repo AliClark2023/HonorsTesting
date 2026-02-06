@@ -110,6 +110,62 @@ bool UTileDirectionUtils::IsTileOnBoundary(const int GridColumn, const int GridR
 
 	return false;
 }
+//sourced from: https://www.redblobgames.com/grids/hexagons/#conversions
+// converts Even Q coords to Cube coordinates 
+FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
+{
+	const int EQx = EvenQ.X;
+	const int EQy = EvenQ.Y;
+
+	const int x = EQx;
+	const int z = EQy - (EQx + (EQx & 1)) / 2;
+	const int y = -x - z;
+
+	return FIntVector(x,y,z);
+}
+
+FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
+{
+	const int X = Cube.X;
+	const int Y = Cube.Z + (X + (X & 1)) / 2;
+	return FVector(X,Y,0.f);
+}
+
+// manhattan distance in cube space
+int UTileDirectionUtils::CubeDistance(const FIntVector& A, const FIntVector& B)
+{
+	return (FMath::Abs(A.X - B.X) + FMath::Abs(A.Y - B.Y) + FMath::Abs(A.Z - B.Z)) / 2;
+}
+//converting int cube coords to float for interpolation
+FVector UTileDirectionUtils::CubeToFloat(const FIntVector& C)
+{
+	return FVector(static_cast<float>(C.X), static_cast<float>(C.Y),static_cast<float>(C.Y));
+}
+
+//rounding float cube back to int cube
+FIntVector UTileDirectionUtils::CubeRound(const FVector& C)
+{
+	int rx = FMath::RoundToInt(C.X);
+	int ry = FMath::RoundToInt(C.Y);
+	int rz = FMath::RoundToInt(C.Z);
+
+	float dx = FMath::Abs(rx - C.X);
+	float dy = FMath::Abs(rx - C.Y);
+	float dz = FMath::Abs(rx - C.Z);
+
+	if (dx > dy && dx > dz)
+	{
+		rx = -ry -rz;
+	}else if (dy > dz)
+	{
+		ry = -rx - rz;
+	}else
+	{
+		rz = -rx - ry;
+	}
+
+	return FIntVector(rx, ry, rz);
+}
 
 
 // determining if grid contains islands
@@ -137,6 +193,35 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 			// Connected island
 			Islands++;
 		}
+	}
+
+	// creating links between islands (from centroid point, remove Island variable)
+	if (Islands > 0)
+	{
+		TArray<FVector> Links;
+		for (int i = 0; i< IslandCentroids.Num() - 1; i++)
+		{
+			Links.Append(JoiningIslands(IslandCentroids[i], IslandCentroids[i+1]));
+
+			// search grid for tiles to change into links
+			for (auto& Link : Links)
+			{
+				if (FTilePropertiesStruct* TileToChange = GridTiles.Find(Link))
+				{
+					FTilePropertiesStruct NewStatus;
+					NewStatus.WorldLocation = TileToChange->WorldLocation;
+					//NewStatus.TileStates = PathTag;
+					NewStatus.TileTags.Reset();
+					NewStatus.TileTags.AddTag(TagToFind);
+
+					GridTiles.Add(Link, NewStatus);
+				}
+			}
+
+			Links.Empty();
+		}
+
+		
 	}
 	
 	return Islands;
@@ -220,9 +305,53 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 		SumOfTiles += Tile;
 	}
 
-	FIntVector;
-	const FVector IslandCentre = SumOfTiles / IslandTiles.Num();
-	return IslandCentre;
+	//returning centroid of island
+	
+	const FVector IslandCentreF = SumOfTiles / IslandTiles.Num();
+	const FVector IslandCenterInt (FMath::RoundToInt(IslandCentreF.X), FMath::RoundToInt(IslandCentreF.Y),0);
+	return IslandCenterInt;
+	
+	
+	// returning random tile within island
+	//return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
+	
+}
+
+TArray<FVector> UTileDirectionUtils::JoiningIslands(const FVector& TileA, const FVector& TileB)
+{
+	TArray<FVector> IslandLinks;
+
+	const FIntVector A = EvenQToCube(TileA);
+	const FIntVector B = EvenQToCube(TileB);
+
+	// will need check outwidth function to detect no links formed
+	const int N = CubeDistance(A,B);
+	if (N == 0)
+	{
+		IslandLinks.Add(TileA);
+		return IslandLinks;
+	}
+
+	// nudging endpoint to avoid boundary rounding artifacts during interpolation
+	const FVector AF = CubeToFloat(A) + FVector(1e-6f, 2e-6f, -3e-6f);
+	const FVector BF = CubeToFloat(B) + FVector(1e-6f, 2e-6f, -3e-6f);
+
+	IslandLinks.Reserve(N + 1);
+	for (int i = 1; i <= N; i++)
+	{
+		const float T = static_cast<float>(i) / static_cast<float>(N);
+		const FVector LerpC = FMath::Lerp(AF, BF, T);
+		const FIntVector C = CubeRound(LerpC);
+		const FVector Qr = CubeToEvenQ(C);
+
+		// checking for any duplicates, only adding links if not already added
+		if (IslandLinks.Num() == 0 || IslandLinks.Last() != Qr)
+		{
+			IslandLinks.Add(Qr);
+		}
+	}
+
+	return IslandLinks;
 }
 
 

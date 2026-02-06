@@ -233,21 +233,6 @@ void AHexGrid::GeneratePath()
 		if (PerlinWorms.AreIslands)
 		{
 			PerlinWorms.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TileConfig.PathTag );
-			/*
-			for (auto& Element : GridInfo.GridTiles)
-			{
-				if (Element.Value.TileTags.HasTag(TileConfig.PathTag))
-				{
-					continue;
-				}
-				// need to check boundary + 1
-				if (UTileDirectionUtils::IsTileBeforeBoundary(GridConfig.Columns, GridConfig.Rows, Element.Key))
-				{
-					continue;
-				}
-				JoinIslands(Element.Key);
-			}
-			*/
 		}
 	}
 }

@@ -21,6 +21,7 @@ class HONORSTESTING_API UTileDirectionUtils : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
+	// tile utilies
 	UFUNCTION(BlueprintCallable, Category = "Tiles")
 	static ETileNeighbour GetDirectionFromAngle(float Angle);
 	static FVector GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile );
@@ -32,9 +33,17 @@ public:
 	static FVector NorthWestNeighbourCoords(const FVector& CurrentTile);
 	static bool IsTileBeforeBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
 	static bool IsTileOnBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
+	// cube helper functions
+	static FIntVector EvenQToCube(const FVector& EvenQ);
+	static FVector CubeToEvenQ(const FIntVector& Cube);
+	static int CubeDistance(const FIntVector& A, const FIntVector& B);
+	static FVector CubeToFloat(const FIntVector& C);
+	static FIntVector CubeRound(const FVector& C);
 
 	//  path algorithm utilities
 	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind);
 	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
+	// Tiles must be in cube coordinates
+	static TArray<FVector> JoiningIslands(const FVector& TileA, const FVector& TileB);
 };
