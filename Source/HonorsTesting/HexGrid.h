@@ -50,6 +50,8 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	TArray<FVector> PerlinPaths();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
+	TArray<FVector> DiffuseLimited();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	FVector ConstructLevel();
@@ -61,8 +63,7 @@ public:
 	FVector GetEndPoint();
 	UFUNCTION(BlueprintCallable, Category = "Query Grid")
 	void SetStartPoint(FVector gridPos);
-	UFUNCTION(BlueprintCallable, Category = "Query Grid")
-	void JoinIslands(FVector CurrentTile);
+
 
 private:
 	float _CalculateTileHeight() const;
@@ -84,7 +85,6 @@ private:
 
 	// walker algorithms
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
-	//TPair<bool, ETileNeighbour>  PerlinWorm(const FVector& CurrentTile, const TArray<ETileNeighbour>& VisitedTiles) const;
 public:
 	// Map tile properties
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Tile Config")
@@ -109,16 +109,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FWormConfig PerlinWorms;
 	
+	// DLA path specific
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
+	FDlaConfig DlaConfig;
+	
 	//Voronoi Specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms", meta = (ClampMin = "1", ClampMax = "10"))
 	int NumberOfRegions = 2;
 	
-	UPROPERTY(BlueprintReadOnly, Category = "Generation Area")
-	//TMap<FVector, FTilePropertiesStruct> GridInfo;
+	UPROPERTY(BlueprintReadOnly, Category = "Grid Properties")
 	FGridProperties GridInfo;
 
-	// Generation operations
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	// Generation initialisation
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Initialisation")
 	FOperationConfig OperationConfig;
 
 private:

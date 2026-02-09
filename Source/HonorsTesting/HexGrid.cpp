@@ -199,6 +199,8 @@ void AHexGrid::GeneratePath()
 		case EPathType::PerlinWorm:
 			Path = PerlinPaths();
 			break;
+		case EPathType::DiffuseLimited:
+			Path = DiffuseLimited();
 		default:
 			Path = Walker();
 		}
@@ -497,6 +499,39 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	return WormPaths;
 }
 
+TArray<FVector> AHexGrid::DiffuseLimited()
+{
+	TArray<FVector> FloorPlan;
+	// creating initial seed area
+	// central start point (overrides specified starting point)
+	GridInfo.StartPoint = FVector(StaticCast<int>(GridConfig.Columns/ 2), StaticCast<int>(GridConfig.Rows/ 2), 0);
+	// using 1 perlin worm to create seed area
+	PerlinWorms.NumWorms = 1;
+	FloorPlan = PerlinPaths();
+	
+	// create walkers until specified floor size has been met
+	int CurrentFloor = 0;
+	while (CurrentFloor < DlaConfig.FloorSize)
+	{
+		// where to spawn walker
+		switch (DlaConfig.TypeSelection)
+		{
+		case EDlaType::Inwards:
+			// spawn walkers at random points within the grid (and boundary), if it hits path, previous tile becomes path
+			break;
+			case EDlaType::Outwards:
+			// spawn walkers at central location, if hits non path, make it path
+			break;
+		default: // Central
+			// spawn walkers at random location within grid
+			// plot line from current location to central point
+			// traverse line, if it hits path, previous tile also becomes path.
+			break;
+		}
+	}
+	return FloorPlan;
+}
+
 void AHexGrid::VoronoiRegions()
 {
 	if (!OperationConfig.bGenerateRegions) return;
@@ -618,47 +653,6 @@ FVector AHexGrid::GetEndPoint()
 void AHexGrid::SetStartPoint(FVector gridPos)
 {
 	GridInfo.StartPoint = gridPos;
-}
-
-// should only be used on tiles 1 away from boundary
-void AHexGrid::JoinIslands(FVector CurrentTile)
-{
-	// new method (uses algorithms* to identify islands then join them)
-	
-	// old method (not practical)
-	// check surrounding tiles for paths
-	int PathCount = 0;
-	for (int i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums(); i++)
-	{
-		ETileNeighbour NeighbourToCheck = StaticCast<ETileNeighbour>(i);
-		TPair<FVector, bool> PosToCheck = GetNeighbour(NeighbourToCheck, CurrentTile);
-		FTilePropertiesStruct* TileToCheck = GridInfo.GridTiles.Find(PosToCheck.Key);
-		if (TileToCheck != nullptr)
-		{
-			if (TileToCheck->TileTags.HasTag(TileConfig.PathTag))
-			{
-				
-				PathCount++;
-				if (PathCount >= 2)
-				{
-					if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(CurrentTile))
-					{
-						FTilePropertiesStruct NewStatus;
-						NewStatus.WorldLocation = TileStatus->WorldLocation;
-						//NewStatus.TileStates = PathTag;
-						NewStatus.TileTags.Reset();
-						//NewStatus.TileTags.AddTag(TileConfig.PathTag);
-						// testing
-						NewStatus.TileTags.AddTag(TileConfig.LavaTag);
-					
-						GridInfo.GridTiles.Add(CurrentTile, NewStatus);
-						return;
-					}
-					
-				}
-			}
-		}
-	}
 }
 
 TPair<FVector, bool> AHexGrid::GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const

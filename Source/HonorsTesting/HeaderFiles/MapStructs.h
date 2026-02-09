@@ -22,6 +22,16 @@ enum class EPathType : uint8
 {
 	DrunkardWalk UMETA(DisplayName = "DrunkardWalk"),
 	PerlinWorm UMETA(DisplayName = "PerlinWorm"),
+	DiffuseLimited UMETA(DisplayName = "DiffuseLimited"),
+};
+
+// DLA type selection
+UENUM(BlueprintType)
+enum class EDlaType : uint8
+{
+	Inwards UMETA(DisplayName = "Inwards"),
+	Outwards UMETA(DisplayName = "Outwards"),
+	Central UMETA(DisplayName = "Central"),
 };
 
 // describes tile properties
@@ -192,4 +202,14 @@ struct FPerlinLandscapeConfig
 	float FeatureScale = 0.4f;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LandscapeConfig", meta = (ClampMin = "0.0", ClampMax = "1000"))
 	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
+};
+
+USTRUCT(BlueprintType)
+struct FDlaConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config")
+	EDlaType TypeSelection = EDlaType::Inwards;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config", meta = (ClampMin = "1.0", ClampMax = "10000.0"))
+	int FloorSize = 25;
 };
