@@ -114,24 +114,24 @@ bool UTileDirectionUtils::IsTileOnBoundary(const int GridColumn, const int GridR
 // converts Even Q coords to Cube coordinates 
 FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
 {
+
+	const int Parity = static_cast<int>(EvenQ.X) & 1;
+	const int Q = EvenQ.X;
+	const int Y = EvenQ.Y - (Q + Parity) / 2;
 	
-	const int EQx = EvenQ.X;
-	const int EQy = EvenQ.Y;
-	const int Parity = EQx&1;
+	return FIntVector(Q, Y, -Q-Y);
 
-	const int x = EQx;
-	const int y = EQy - (EQx + Parity) / 2;
-	//const int y = -x - z;
-
-	return FIntVector(x,y,-x-y);
 }
 
 FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
 {
-	const int Parity = Cube.X&1;
-	const int X = Cube.X;
-	const int Y = Cube.Y + (X + Parity) / 2;
-	return FVector(X,Y,0.f);
+
+	const int Parity = Cube.X & 1;
+	const int Col = Cube.X;
+	const int Row = Cube.Y + (Cube.X + Parity) / 2;
+	
+	return FVector(Col, Row, 0);
+
 }
 
 // manhattan distance in cube space
@@ -310,14 +310,14 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 	}
 
 	//returning centroid of island
-	/*
+	
 	const FVector IslandCentreF = SumOfTiles / IslandTiles.Num();
 	const FVector IslandCenterInt (FMath::RoundToInt(IslandCentreF.X), FMath::RoundToInt(IslandCentreF.Y),0);
 	return IslandCenterInt;
-	*/
 	
-	// returning random tile within island
-	return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
+	
+	// returning random tile within island ( can overflow )
+	//return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
 	
 }
 

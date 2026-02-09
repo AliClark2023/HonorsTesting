@@ -446,10 +446,15 @@ TArray<FVector> AHexGrid::PerlinPaths()
 			TPair<FVector,bool> Neighbour = GetNeighbour(Dir,FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
 
 			// Valid grid coord check
+			
 			if (Neighbour.Value)
 			{
+				if (TestWorm.Display().Contains(FVector2D(Neighbour.Key.X, Neighbour.Key.Y))) break;
 				FVector2D StepPos = FVector2D(Neighbour.Key.X, Neighbour.Key.Y);
 				TestWorm.Grow(StepPos);
+			}else
+			{
+				break;
 			}
 			
 		}
