@@ -232,7 +232,10 @@ void AHexGrid::GeneratePath()
 		// only checks surrounding tiles for islands when specified
 		if (PerlinWorms.AreIslands)
 		{
-			PerlinWorms.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TileConfig.PathTag );
+			FGameplayTagContainer TilesToExclude;
+			TilesToExclude.AddTag(TileConfig.PathStartTag);
+			TilesToExclude.AddTag(TileConfig.PathEndTag);
+			PerlinWorms.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TileConfig.PathTag, TilesToExclude );
 		}
 	}
 }
@@ -426,14 +429,14 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	{
 		//need to adjust seed, freq and other variables to get variations for each worm.
 		FPerlinWorm TestWorm(WormSP, TileConfig.PathTag);
-		/*
+		// random coords
 		const float WormSeed = PerlinWorms.OriginalSeed + i * PerlinWorms.WormSeedOffset;
 		const float WormFreq = PerlinWorms.OriginalFreq + i * FMath::RandRange(PerlinWorms.WormFreqRange.X, PerlinWorms.WormFreqRange.Y);
-		*/
+		
 		
 		// testing (for joining islands)
-		const float WormSeed = PerlinWorms.OriginalSeed + i;
-		const float WormFreq = PerlinWorms.OriginalFreq + i;
+		//const float WormSeed = PerlinWorms.OriginalSeed + i;
+		//const float WormFreq = PerlinWorms.OriginalFreq + i;
 		
 		for (int j = 0; j < PerlinWorms.Length; j++)
 		{
@@ -467,8 +470,8 @@ TArray<FVector> AHexGrid::PerlinPaths()
 			WormSP.Y = FMath::RandRange(1,GridConfig.Rows - 2);
 
 			// testing (removing randomness to test island links)
-			WormSP.X = GridConfig.Columns / 2;
-			WormSP.Y = GridConfig.Rows / 2;
+			//WormSP.X = GridConfig.Columns / 2;
+			//WormSP.Y = GridConfig.Rows / 2;
 		}else
 		{
 			// starting new worm at random point of previous worm

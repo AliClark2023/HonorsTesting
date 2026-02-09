@@ -110,26 +110,51 @@ bool UTileDirectionUtils::IsTileOnBoundary(const int GridColumn, const int GridR
 
 	return false;
 }
+
+FIntVector UTileDirectionUtils::CubeSubtract(const FIntVector& A, const FIntVector& B)
+{
+	return FIntVector(A.X - B.X, A.Y - B.Y, A.Z - B.Z);
+}
+
 //sourced from: https://www.redblobgames.com/grids/hexagons/#conversions
 // converts Even Q coords to Cube coordinates 
 FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
 {
-
+/*
 	const int Parity = static_cast<int>(EvenQ.X) & 1;
 	const int Q = EvenQ.X;
 	const int Y = EvenQ.Y - (Q + Parity) / 2;
 	
 	return FIntVector(Q, Y, -Q-Y);
+	*/
+	// other method
+
+	const int Col = EvenQ.X;
+	const int Row = EvenQ.Y;
+
+	const int X = Col;
+	const int Z = Row - (Col - (Col & 1)) / 2;
+	const int Y = -X - Z;
+
+	return FIntVector(X, Y, Z);
+
 
 }
 
 FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
 {
-
+/*
 	const int Parity = Cube.X & 1;
 	const int Col = Cube.X;
 	const int Row = Cube.Y + (Cube.X + Parity) / 2;
 	
+	return FVector(Col, Row, 0);
+*/
+	// other method
+
+	const int Col = Cube.X;
+	const int Row = Cube.Z + (Col - (Col & 1)) / 2;
+
 	return FVector(Col, Row, 0);
 
 }
@@ -137,43 +162,66 @@ FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
 // manhattan distance in cube space
 int UTileDirectionUtils::CubeDistance(const FIntVector& A, const FIntVector& B)
 {
-	return (FMath::Abs(A.X - B.X) + FMath::Abs(A.Y - B.Y) + FMath::Abs(A.Z - B.Z)) / 2;
-}
-//converting int cube coords to float for interpolation
-FVector UTileDirectionUtils::CubeToFloat(const FIntVector& C)
-{
-	return FVector(static_cast<float>(C.X), static_cast<float>(C.Y),static_cast<float>(C.Y));
+	const FIntVector Vec = CubeSubtract(A,B);
+	return (FMath::Abs(Vec.X) + FMath::Abs(Vec.Y) + FMath::Abs(Vec.Z)) / 2;
 }
 
 //rounding float cube back to int cube
-FIntVector UTileDirectionUtils::CubeRound(const FVector& C)
+FIntVector UTileDirectionUtils::CubeRound(const FVector& FracCoords)
 {
-	int rx = FMath::RoundToInt(C.X);
-	int ry = FMath::RoundToInt(C.Y);
-	int rz = FMath::RoundToInt(C.Z);
+	int Q = FMath::RoundToInt(FracCoords.X);
+	int R = FMath::RoundToInt(FracCoords.Y);
+	int S = FMath::RoundToInt(FracCoords.Z);
 
-	float dx = FMath::Abs(rx - C.X);
-	float dy = FMath::Abs(rx - C.Y);
-	float dz = FMath::Abs(rx - C.Z);
-
-	if (dx > dy && dx > dz)
+	const float QDiff = FMath::Abs(Q - FracCoords.X);
+	const float RDiff = FMath::Abs(R - FracCoords.Y);
+	const float SDiff = FMath::Abs(S - FracCoords.Z);
+	
+	if (QDiff > RDiff && QDiff > SDiff)
 	{
-		rx = -ry -rz;
-	}else if (dy > dz)
+		Q = -R-S;
+	}else if (RDiff > SDiff)
 	{
-		ry = -rx - rz;
+		R = -Q-S;
 	}else
 	{
-		rz = -rx - ry;
+		S = -Q-R;
 	}
+	
+	return FIntVector(Q, R, S);
+}
 
-	return FIntVector(rx, ry, rz);
+float UTileDirectionUtils::Lerp(float PointA, float PointB, float Fraction)
+{
+	return PointA + (PointB - PointA) * Fraction;
+}
+
+FVector UTileDirectionUtils::CubeLerp(FIntVector PointA, FIntVector PointB, float Fraction)
+{
+	return FVector(
+		Lerp(PointA.X, PointB.X, Fraction),
+		Lerp(PointA.Y, PointB.Y, Fraction),
+		Lerp(PointA.Z, PointB.Z, Fraction)
+		);
+}
+
+TArray<FIntVector> UTileDirectionUtils::CubeLineDraw(const FIntVector& TileA, const FIntVector& TileB)
+{
+	int N = CubeDistance(TileA, TileB);
+	TArray<FIntVector> LineDraw;
+	
+	for (int i = 0; i <= N; i++)
+	{
+		float t = (N ==0 ? 0.0f : i / static_cast<float>(N));
+		LineDraw.Add(CubeRound(CubeLerp(TileA, TileB, t)));
+	}
+	
+	return LineDraw;
 }
 
 
-// determining if grid contains islands
-
-int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector2D GridSize, FGameplayTag TagToFind)
+// determining if grid contains islands and joins any detected
+int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector2D GridSize, FGameplayTag TagToFind, FGameplayTagContainer ExcludeTags)
 {
 	int n = GridSize.X;
 	int m = GridSize.Y;
@@ -204,17 +252,29 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 		TArray<FVector> Links;
 		for (int i = 0; i< IslandCentroids.Num() - 1; i++)
 		{
-			Links.Append(JoiningIslands(IslandCentroids[i], IslandCentroids[i+1]));
+			// testing new method
+			FIntVector TileA = EvenQToCube(IslandCentroids[i]);
+			FIntVector TileB = EvenQToCube(IslandCentroids[i+1]);
+			TArray<FIntVector> CubeLinks = CubeLineDraw(TileA, TileB);
+			
 			// break if function only returns 1 link (should be starting point)
-			if (Links.Num() == 1) break;
+			if (CubeLinks.Num() <= 1) break;
+			
+			for (auto Link : CubeLinks)
+			{
+				Links.Add(CubeToEvenQ(Link));
+			}
+			
 			// search grid for tiles to change into links
 			for (auto& Link : Links)
 			{
 				if (FTilePropertiesStruct* TileToChange = GridTiles.Find(Link))
 				{
+					// skip specified tags, prevents overwriting start/end or other specified tiles
+					if (TileToChange->TileTags.HasAny(ExcludeTags)) continue;
+					
 					FTilePropertiesStruct NewStatus;
 					NewStatus.WorldLocation = TileToChange->WorldLocation;
-					//NewStatus.TileStates = PathTag;
 					NewStatus.TileTags.Reset();
 					NewStatus.TileTags.AddTag(TagToFind);
 
@@ -318,44 +378,6 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 	
 	// returning random tile within island ( can overflow )
 	//return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
-	
-}
-
-TArray<FVector> UTileDirectionUtils::JoiningIslands(const FVector& TileA, const FVector& TileB)
-{
-	TArray<FVector> IslandLinks;
-
-	const FIntVector A = EvenQToCube(TileA);
-	const FIntVector B = EvenQToCube(TileB);
-
-	// will need check outwidth function to detect no links formed
-	const int N = CubeDistance(A,B);
-	if (N == 0)
-	{
-		IslandLinks.Add(TileA);
-		return IslandLinks;
-	}
-
-	// nudging endpoint to avoid boundary rounding artifacts during interpolation
-	const FVector AF = CubeToFloat(A) + FVector(1e-6f, 2e-6f, -3e-6f);
-	const FVector BF = CubeToFloat(B) + FVector(1e-6f, 2e-6f, -3e-6f);
-
-	IslandLinks.Reserve(N + 1);
-	for (int i = 1; i <= N; i++)
-	{
-		const float T = static_cast<float>(i) / static_cast<float>(N);
-		const FVector LerpC = FMath::Lerp(AF, BF, T);
-		const FIntVector C = CubeRound(LerpC);
-		const FVector Qr = CubeToEvenQ(C);
-
-		// checking for any duplicates, only adding links if not already added
-		if (IslandLinks.Num() == 0 || IslandLinks.Last() != Qr)
-		{
-			IslandLinks.Add(Qr);
-		}
-	}
-
-	return IslandLinks;
 }
 
 

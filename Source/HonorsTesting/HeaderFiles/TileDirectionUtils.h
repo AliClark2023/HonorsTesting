@@ -33,17 +33,20 @@ public:
 	static FVector NorthWestNeighbourCoords(const FVector& CurrentTile);
 	static bool IsTileBeforeBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
 	static bool IsTileOnBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
-	// cube helper functions
+	// cube helper functions (made from https://www.redblobgames.com/grids/hexagons/#conversions)
+	static FIntVector CubeSubtract(const FIntVector& A, const FIntVector& B);
+	static int CubeDistance(const FIntVector& A, const FIntVector& B);
 	static FIntVector EvenQToCube(const FVector& EvenQ);
 	static FVector CubeToEvenQ(const FIntVector& Cube);
-	static int CubeDistance(const FIntVector& A, const FIntVector& B);
-	static FVector CubeToFloat(const FIntVector& C);
-	static FIntVector CubeRound(const FVector& C);
-
+	static FIntVector CubeRound(const FVector& FracCoords);
+	static float Lerp(float PointA, float PointB, float Fraction);
+	static FVector CubeLerp(FIntVector PointA, FIntVector PointB, float Fraction);
+	// Tiles must be in cube coordinates
+	static TArray<FIntVector> CubeLineDraw(const FIntVector& TileA, const FIntVector& TileB);
+	
 	//  path algorithm utilities
-	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind);
+	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind, FGameplayTagContainer ExcludeTags);
 	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
-	// Tiles must be in cube coordinates
-	static TArray<FVector> JoiningIslands(const FVector& TileA, const FVector& TileB);
+	
 };
