@@ -426,8 +426,14 @@ TArray<FVector> AHexGrid::PerlinPaths()
 	{
 		//need to adjust seed, freq and other variables to get variations for each worm.
 		FPerlinWorm TestWorm(WormSP, TileConfig.PathTag);
+		/*
 		const float WormSeed = PerlinWorms.OriginalSeed + i * PerlinWorms.WormSeedOffset;
 		const float WormFreq = PerlinWorms.OriginalFreq + i * FMath::RandRange(PerlinWorms.WormFreqRange.X, PerlinWorms.WormFreqRange.Y);
+		*/
+		
+		// testing (for joining islands)
+		const float WormSeed = PerlinWorms.OriginalSeed + i;
+		const float WormFreq = PerlinWorms.OriginalFreq + i;
 		
 		for (int j = 0; j < PerlinWorms.Length; j++)
 		{
@@ -454,6 +460,10 @@ TArray<FVector> AHexGrid::PerlinPaths()
 			// random starting point within grid (Produces best result but with no guarantee that path is contiguous)
 			WormSP.X = FMath::RandRange(1,GridConfig.Columns - 2);
 			WormSP.Y = FMath::RandRange(1,GridConfig.Rows - 2);
+
+			// testing (removing randomness to test island links)
+			WormSP.X = GridConfig.Columns / 2;
+			WormSP.Y = GridConfig.Rows / 2;
 		}else
 		{
 			// starting new worm at random point of previous worm

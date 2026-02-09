@@ -114,20 +114,23 @@ bool UTileDirectionUtils::IsTileOnBoundary(const int GridColumn, const int GridR
 // converts Even Q coords to Cube coordinates 
 FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
 {
+	
 	const int EQx = EvenQ.X;
 	const int EQy = EvenQ.Y;
+	const int Parity = EQx&1;
 
 	const int x = EQx;
-	const int z = EQy - (EQx + (EQx & 1)) / 2;
-	const int y = -x - z;
+	const int y = EQy - (EQx + Parity) / 2;
+	//const int y = -x - z;
 
-	return FIntVector(x,y,z);
+	return FIntVector(x,y,-x-y);
 }
 
 FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
 {
+	const int Parity = Cube.X&1;
 	const int X = Cube.X;
-	const int Y = Cube.Z + (X + (X & 1)) / 2;
+	const int Y = Cube.Y + (X + Parity) / 2;
 	return FVector(X,Y,0.f);
 }
 
@@ -202,7 +205,8 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 		for (int i = 0; i< IslandCentroids.Num() - 1; i++)
 		{
 			Links.Append(JoiningIslands(IslandCentroids[i], IslandCentroids[i+1]));
-
+			// break if function only returns 1 link (should be starting point)
+			if (Links.Num() == 1) break;
 			// search grid for tiles to change into links
 			for (auto& Link : Links)
 			{
@@ -306,14 +310,14 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 	}
 
 	//returning centroid of island
-	
+	/*
 	const FVector IslandCentreF = SumOfTiles / IslandTiles.Num();
 	const FVector IslandCenterInt (FMath::RoundToInt(IslandCentreF.X), FMath::RoundToInt(IslandCentreF.Y),0);
 	return IslandCenterInt;
-	
+	*/
 	
 	// returning random tile within island
-	//return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
+	return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
 	
 }
 
