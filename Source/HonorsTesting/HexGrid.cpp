@@ -300,7 +300,7 @@ TArray<FVector> AHexGrid::Walker()
 				switch (_ChosenNeighbour)
 				{
 				case ETileNeighbour::North:
-					_Neighbour = NorthNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::NorthNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -316,7 +316,7 @@ TArray<FVector> AHexGrid::Walker()
 					}
 					break;
 				case ETileNeighbour::Northeast:
-					_Neighbour = NorthEastNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::NorthEastNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -329,7 +329,7 @@ TArray<FVector> AHexGrid::Walker()
 					}
 					break;
 				case ETileNeighbour::Southeast:
-					_Neighbour = SouthEastNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::SouthEastNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -342,7 +342,7 @@ TArray<FVector> AHexGrid::Walker()
 					}
 					break;
 				case ETileNeighbour::South:
-					_Neighbour = SouthNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::SouthNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -355,7 +355,7 @@ TArray<FVector> AHexGrid::Walker()
 					}
 					break;
 				case ETileNeighbour::Southwest:
-					_Neighbour = SouthWestNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::SouthWestNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -368,7 +368,7 @@ TArray<FVector> AHexGrid::Walker()
 					}
 					break;
 				case ETileNeighbour::Northwest:
-					_Neighbour = NorthWestNeighbour(_CurrentTile);
+					_Neighbour = UTileDirectionUtils::NorthWestNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
 					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
 					{
 						_TestPath.Add(_Neighbour.Key);
@@ -448,7 +448,8 @@ TArray<FVector> AHexGrid::PerlinPaths()
 			Angle = ((Noise + 1) / 2) * 360;
 		
 			ETileNeighbour Dir = UTileDirectionUtils::GetDirectionFromAngle(Angle);
-			TPair<FVector,bool> Neighbour = GetNeighbour(Dir,FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
+			TPair<FVector,bool> Neighbour = UTileDirectionUtils::GetNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
+				Dir,FVector(TestWorm.GetX(), TestWorm.GetY(), 0));
 
 			// Valid grid coord check
 			
@@ -655,6 +656,7 @@ void AHexGrid::SetStartPoint(FVector gridPos)
 	GridInfo.StartPoint = gridPos;
 }
 
+/*
 TPair<FVector, bool> AHexGrid::GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const
 {
 	switch (Neighbour)
@@ -772,6 +774,7 @@ TPair<FVector, bool> AHexGrid::NorthWestNeighbour(const FVector& CurrentTile) co
 	return TPair<FVector, bool>(TileNeighbour, true);
 	
 }
+*/
 /*
 bool AHexGrid::TileOnBoundary(const FVector& CurrentTile) const
 {

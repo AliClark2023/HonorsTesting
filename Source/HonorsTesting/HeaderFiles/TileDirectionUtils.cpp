@@ -12,23 +12,142 @@ ETileNeighbour UTileDirectionUtils::GetDirectionFromAngle(float Angle)
 	if (Angle < 300.f)  return ETileNeighbour::Southwest;
 	return ETileNeighbour::Northwest;
 }
+
+TPair<FVector, bool> UTileDirectionUtils::GetNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize,
+	const ETileNeighbour& Neighbour, const FVector& CurrentTile)
+{
+	switch (Neighbour)
+	{
+	case ETileNeighbour::North:
+		return  NorthNeighbour(GridRef, GridSize, CurrentTile);
+	case ETileNeighbour::Northeast:
+		return  NorthEastNeighbour(GridRef, GridSize, CurrentTile);
+	case ETileNeighbour::Southeast:
+		return  SouthEastNeighbour(GridRef, GridSize, CurrentTile);
+	case ETileNeighbour::South:
+		return  SouthNeighbour(GridRef, GridSize, CurrentTile);
+	case ETileNeighbour::Southwest:
+		return  SouthWestNeighbour(GridRef, GridSize, CurrentTile);
+	case ETileNeighbour::Northwest:
+		return  NorthWestNeighbour(GridRef, GridSize, CurrentTile);
+	default:
+		return TPair<FVector, bool>(CurrentTile, false);
+	}
+}
+
+TPair<FVector, bool> UTileDirectionUtils::NorthNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, 
+	const FIntVector2 &GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::North;
+	FVector TileNeighbour(NorthNeighbourCoords(CurrentTile));
+
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
+TPair<FVector, bool> UTileDirectionUtils::NorthEastNeighbour(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::Northeast;
+	FVector TileNeighbour(NorthEastNeighbourCoords(CurrentTile));
+	
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
+TPair<FVector, bool> UTileDirectionUtils::SouthEastNeighbour(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::Southeast;
+	FVector TileNeighbour(SouthEastNeighbourCoords(CurrentTile));
+
+
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
+TPair<FVector, bool> UTileDirectionUtils::SouthNeighbour(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::South;
+	FVector TileNeighbour(SouthNeighbourCoords(CurrentTile));
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
+TPair<FVector, bool> UTileDirectionUtils::SouthWestNeighbour(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::Southwest;
+	FVector TileNeighbour(SouthWestNeighbourCoords(CurrentTile));
+
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y,TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
+TPair<FVector, bool> UTileDirectionUtils::NorthWestNeighbour(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CurrentTile)
+{
+	constexpr ETileNeighbour Type = ETileNeighbour::Northwest;
+	FVector TileNeighbour(NorthWestNeighbourCoords(CurrentTile));
+	
+	if (!GridRef.Contains(TileNeighbour))
+	{
+		return TPair<FVector, bool>(CurrentTile, false);
+	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
+	{
+		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
+	}
+	return TPair<FVector, bool>(TileNeighbour, true);
+}
+
 // returns position of opposite neighbour, used for responding to boundaries
-FVector UTileDirectionUtils::GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile)
+FVector UTileDirectionUtils::GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile )
 {
 	switch (CurrentNeighbour)
 	{
 	case ETileNeighbour::North:
-		return  UTileDirectionUtils::SouthNeighbourCoords(CurrentTile);
+		return  SouthNeighbourCoords(CurrentTile);
 	case ETileNeighbour::Northeast:
-		return  UTileDirectionUtils::SouthWestNeighbourCoords(CurrentTile);
+		return  SouthWestNeighbourCoords(CurrentTile);
 	case ETileNeighbour::Southeast:
-		return  UTileDirectionUtils::NorthWestNeighbourCoords(CurrentTile);
+		return  NorthWestNeighbourCoords(CurrentTile);
 	case ETileNeighbour::South:
-		return  UTileDirectionUtils::NorthNeighbourCoords(CurrentTile);
+		return  NorthNeighbourCoords(CurrentTile);
 	case ETileNeighbour::Southwest:
-		return  UTileDirectionUtils::NorthEastNeighbourCoords(CurrentTile);
+		return  NorthEastNeighbourCoords(CurrentTile);
 	case ETileNeighbour::Northwest:
-		return  UTileDirectionUtils::SouthEastNeighbourCoords(CurrentTile);
+		return  SouthEastNeighbourCoords(CurrentTile);
 	default:
 		return CurrentTile;
 	}

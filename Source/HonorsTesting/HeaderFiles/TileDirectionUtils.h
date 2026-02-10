@@ -21,16 +21,18 @@ class HONORSTESTING_API UTileDirectionUtils : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
-	// tile utilies
+	// tile utilities
 	UFUNCTION(BlueprintCallable, Category = "Tiles")
 	static ETileNeighbour GetDirectionFromAngle(float Angle);
-	static FVector GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile );
-	static FVector NorthNeighbourCoords(const FVector& CurrentTile);
-	static FVector NorthEastNeighbourCoords(const FVector& CurrentTile);
-	static FVector SouthNeighbourCoords(const FVector& CurrentTile);
-	static FVector SouthEastNeighbourCoords(const FVector& CurrentTile);
-	static FVector SouthWestNeighbourCoords(const FVector& CurrentTile);
-	static FVector NorthWestNeighbourCoords(const FVector& CurrentTile);
+	// getting tile ( can make parameters a struct for easier readability )
+	static TPair<FVector, bool> GetNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const ETileNeighbour& Neighbour, const FVector& CurrentTile);
+	static TPair<FVector, bool> NorthNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	static TPair<FVector, bool> NorthEastNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	static TPair<FVector, bool> SouthEastNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	static TPair<FVector, bool> SouthNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	static TPair<FVector, bool> SouthWestNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	static TPair<FVector, bool> NorthWestNeighbour(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FVector& CurrentTile);
+	
 	static bool IsTileBeforeBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
 	static bool IsTileOnBoundary(const int GridColumn, const int GridRow, const FVector& CurrentTile);
 	// cube helper functions (made from https://www.redblobgames.com/grids/hexagons/#conversions)
@@ -49,4 +51,13 @@ public:
 	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 	
+private:
+	// getting tiles direct coords (make private?)
+	static FVector GetOppositeNeighbour(ETileNeighbour CurrentNeighbour, const FVector& CurrentTile );
+	static FVector NorthNeighbourCoords(const FVector& CurrentTile);
+	static FVector NorthEastNeighbourCoords(const FVector& CurrentTile);
+	static FVector SouthNeighbourCoords(const FVector& CurrentTile);
+	static FVector SouthEastNeighbourCoords(const FVector& CurrentTile);
+	static FVector SouthWestNeighbourCoords(const FVector& CurrentTile);
+	static FVector NorthWestNeighbourCoords(const FVector& CurrentTile);
 };

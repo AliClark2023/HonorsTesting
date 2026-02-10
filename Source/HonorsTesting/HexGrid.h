@@ -71,7 +71,8 @@ private:
 	// also clears path start point atm
 	void _clearLand();
 	void _clearRegions() const;
-	// add map to parameter and make a static const function? then move to calculation header file
+	// moved to Utils file
+	/*
 	TPair<FVector, bool> GetNeighbour(const ETileNeighbour Neighbour, const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthEastNeighbour(const FVector& CurrentTile) const;
@@ -79,6 +80,7 @@ private:
 	TPair<FVector, bool> SouthNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> SouthWestNeighbour(const FVector& CurrentTile) const;
 	TPair<FVector, bool> NorthWestNeighbour(const FVector& CurrentTile) const;
+	*/
 	//bool TileOnBoundary(const FVector& CurrentTile) const;
 	//bool TileBeforeBoundary(const FVector& CurrentTile) const;
 	FGameplayTag GetRegionTag(ERegionType Type) const;
