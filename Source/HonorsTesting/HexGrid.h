@@ -84,7 +84,10 @@ private:
 	//bool TileOnBoundary(const FVector& CurrentTile) const;
 	//bool TileBeforeBoundary(const FVector& CurrentTile) const;
 	FGameplayTag GetRegionTag(ERegionType Type) const;
-
+	void FinalizePaths(TArray<FVector>& Path);
+	void UpdatePaths(TArray<FVector>& Path);
+	//void UpdateStartPoint(FVector& Tile);
+	void UpdateTile(FVector& Tile, FGameplayTag TagToAdd);
 	// walker algorithms
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
 public:

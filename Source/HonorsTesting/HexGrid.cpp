@@ -202,10 +202,14 @@ void AHexGrid::GeneratePath()
 			break;
 		case EPathType::DiffuseLimited:
 			Path = DiffuseLimited();
+			break;
 		default:
 			Path = Walker();
 		}
 		
+		// make function to use in combinational algorithms
+		FinalizePaths(Path);
+		/*
 		for (FVector Element : Path)
 		{
 			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
@@ -232,6 +236,8 @@ void AHexGrid::GeneratePath()
 				GridInfo.GridTiles.Add(Element, NewStatus);
 			}
 		}
+		*/
+		
 		// only checks surrounding tiles for islands when specified
 		if (PerlinWorms.AreIslands)
 		{
@@ -503,22 +509,31 @@ TArray<FVector> AHexGrid::PerlinPaths()
 
 TArray<FVector> AHexGrid::DiffuseLimited()
 {
-	TArray<FVector> FloorPlan;
-	// creating initial seed area
-	// central start point (overrides specified starting point)
-	GridInfo.StartPoint = FVector(StaticCast<int>(GridConfig.Columns/ 2), StaticCast<int>(GridConfig.Rows/ 2), 0);
+	// creating initial seed area from start point
+
 	// using 1 perlin worm to create seed area, transfer seed number to perlin config
 	PerlinWorms.OriginalSeed = DlaConfig.StartingAreaSeed;
+	PerlinWorms.Length = 15;
 	PerlinWorms.NumWorms = 1;
-	FloorPlan = PerlinPaths();
+	// this needs to set tiles tags in grid before walks begin
+	TArray<FVector> FloorPlan = PerlinPaths();
+	UpdatePaths(FloorPlan);
+	
 	
 	// create walkers until specified floor size has been met
 	int CurrentFloorSize = FloorPlan.Num();
+	
+	
 	while (CurrentFloorSize < DlaConfig.FloorSize)
 	{
 		// where to spawn walker
 		FIntVector2 WalkerSpawn = FIntVector2(0,0);
 		TPair<bool, FIntVector2> WalkResult = TPair<bool,FIntVector2>(false,FIntVector2(0,0));
+		// Tiles to search for
+		FGameplayTagContainer TagsToFind;
+		TagsToFind.AddTag(TileConfig.PathTag);
+		TagsToFind.AddTag(TileConfig.PathStartTag);
+		TagsToFind.AddTag(TileConfig.PathEndTag);
 		
 		switch (DlaConfig.TypeSelection)
 		{
@@ -527,11 +542,16 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
 			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
 			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
-				WalkerSpawn, TileConfig.PathTag);
+				WalkerSpawn, TagsToFind);
 			
+			// specified tile found, update floor plan, update grid
 			if (WalkResult.Key)
 			{
+				FVector TileToUpdate = FVector(WalkResult.Value.X, WalkResult.Value.Y, 0);
 				FloorPlan.Add(FVector(WalkResult.Value.X, WalkResult.Value.Y, 0));
+				
+				UpdateTile(TileToUpdate,TileConfig.PathTag);
+				
 				CurrentFloorSize ++;
 			}
 			
@@ -828,6 +848,105 @@ FGameplayTag AHexGrid::GetRegionTag(const ERegionType Type) const
 			return FGameplayTag::EmptyTag;
 	}
 }
+
+// used to set start and end points of paths
+void AHexGrid::FinalizePaths(TArray<FVector>& Path)
+{
+	for (FVector Element : Path)
+	{
+		if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
+		{
+			FTilePropertiesStruct NewStatus;
+			NewStatus.WorldLocation = TileStatus->WorldLocation;
+			//NewStatus.TileStates = PathTag;
+			NewStatus.TileTags.Reset();
+			// need duplicate?
+			NewStatus.TileTags.AddTag(TileConfig.PathTag);
+			
+			// marking start and end points of path
+			if (Element == Path[0])
+			{
+				NewStatus.TileTags.AddTag(TileConfig.PathStartTag);
+			}else if (Element == (Path[Path.Num()-1])){
+				NewStatus.TileTags.AddTag(TileConfig.PathEndTag);
+				//EndPoint = Element;
+				GridInfo.EndPoint = Element;
+			}else
+			{
+				NewStatus.TileTags.AddTag(TileConfig.PathTag);
+			}
+				
+				
+			GridInfo.GridTiles.Add(Element, NewStatus);
+		}
+	}
+}
+
+// updates paths with new values, used before finalizing paths
+void AHexGrid::UpdatePaths(TArray<FVector>& Path)
+{
+	for (FVector Element : Path)
+	{
+		if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
+		{
+			FTilePropertiesStruct NewStatus;
+			NewStatus.WorldLocation = TileStatus->WorldLocation;
+			//NewStatus.TileStates = PathTag;
+			NewStatus.TileTags.Reset();
+			NewStatus.TileTags.AddTag(TileConfig.PathTag);
+			
+			//updating tile
+			GridInfo.GridTiles.Add(Element, NewStatus);
+		}
+	}
+}
+
+void AHexGrid::UpdateTile(FVector& Tile, FGameplayTag TagToAdd)
+{
+	FTilePropertiesStruct* FoundTile = GridInfo.GridTiles.Find(Tile);
+	if (FoundTile)
+	{
+		FTilePropertiesStruct NewStatus;
+		NewStatus.WorldLocation = FoundTile->WorldLocation;
+		NewStatus.TileTags.Reset();
+		NewStatus.TileTags.AddTag(TagToAdd);
+		
+		//updating tile
+		GridInfo.GridTiles.Add(Tile, NewStatus);
+	}
+}
+
+/*
+void AHexGrid::UpdateStartPoint(FVector& Tile)
+{
+	FVector PrevStartCoord = GridInfo.StartPoint;
+	FTilePropertiesStruct*  PrevStartTile = GridInfo.GridTiles.Find(PrevStartCoord);
+	
+	if (PrevStartTile)
+	{
+		FTilePropertiesStruct NewStatus;
+		NewStatus.WorldLocation = PrevStartTile->WorldLocation;
+		NewStatus.TileTags.Reset();
+		NewStatus.TileTags.AddTag(TileConfig.LandTag);
+		
+		//updating tile
+		GridInfo.GridTiles.Add(PrevStartCoord, NewStatus);
+	}
+	
+	FVector NewStartCoord = Tile;
+	FTilePropertiesStruct*  NewStartTile = GridInfo.GridTiles.Find(PrevStartCoord);
+	if (PrevStartTile)
+	{
+		FTilePropertiesStruct NewStatus;
+		NewStatus.WorldLocation = NewStartTile->WorldLocation;
+		NewStatus.TileTags.Reset();
+		NewStatus.TileTags.AddTag(TileConfig.PathStartTag);
+		
+		//updating tile
+		GridInfo.GridTiles.Add(NewStartCoord, NewStatus);
+	}
+}
+*/
 
 TPair<bool, ETileNeighbour> AHexGrid::DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles)
 {

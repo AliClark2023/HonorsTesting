@@ -46,6 +46,7 @@ TPair<FVector, bool> UTileDirectionUtils::NorthNeighbour(const TMap<FVector, FTi
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
@@ -62,6 +63,7 @@ TPair<FVector, bool> UTileDirectionUtils::NorthEastNeighbour(const TMap<FVector,
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
@@ -79,6 +81,7 @@ TPair<FVector, bool> UTileDirectionUtils::SouthEastNeighbour(const TMap<FVector,
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
@@ -94,6 +97,7 @@ TPair<FVector, bool> UTileDirectionUtils::SouthNeighbour(const TMap<FVector, FTi
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
@@ -110,6 +114,7 @@ TPair<FVector, bool> UTileDirectionUtils::SouthWestNeighbour(const TMap<FVector,
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y,TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
@@ -126,6 +131,7 @@ TPair<FVector, bool> UTileDirectionUtils::NorthWestNeighbour(const TMap<FVector,
 		return TPair<FVector, bool>(CurrentTile, false);
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
+		//return TPair<FVector, bool>(CurrentTile, false);
 		return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
