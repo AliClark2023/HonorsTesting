@@ -516,7 +516,8 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 	PerlinWorms.Length = 15;
 	PerlinWorms.NumWorms = 1;
 	// this needs to set tiles tags in grid before walks begin
-	TArray<FVector> FloorPlan = PerlinPaths();
+	const TArray<FVector> SeedArea = PerlinPaths();
+	TArray<FVector> FloorPlan = SeedArea;
 	UpdatePaths(FloorPlan);
 	
 	
@@ -531,18 +532,21 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 		TPair<bool, FIntVector2> WalkResult = TPair<bool,FIntVector2>(false,FIntVector2(0,0));
 		// Tiles to search for
 		FGameplayTagContainer TagsToFind;
-		TagsToFind.AddTag(TileConfig.PathTag);
-		TagsToFind.AddTag(TileConfig.PathStartTag);
-		TagsToFind.AddTag(TileConfig.PathEndTag);
+		
 		
 		switch (DlaConfig.TypeSelection)
 		{
 		case EDlaType::Inwards:
+			// tags to search for
+			TagsToFind.Reset();
+			TagsToFind.AddTag(TileConfig.PathTag);
+			TagsToFind.AddTag(TileConfig.PathStartTag);
+			TagsToFind.AddTag(TileConfig.PathEndTag);
 			// spawn walkers at random points within the grid (and boundary), if it hits path, previous tile becomes path
 			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
 			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
 			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
-				WalkerSpawn, TagsToFind);
+				WalkerSpawn, TagsToFind, DlaConfig.TypeSelection);
 			
 			// specified tile found, update floor plan, update grid
 			if (WalkResult.Key)
@@ -557,7 +561,29 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			
 			break;
 			case EDlaType::Outwards:
-			// spawn walkers at central location, if hits non path, make it path
+			// Tile to search for
+			TagsToFind.Reset();
+			TagsToFind.AddTag(TileConfig.LandTag);
+			
+			// spawn walkers on central location area, if hits non path, make it path
+			FVector TileToSpawn = SeedArea[FMath::RandRange(0,SeedArea.Num() - 1)];
+			WalkerSpawn = FIntVector2(GridInfo.StartPoint.X,GridInfo.StartPoint.Y);
+			
+			
+			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
+				WalkerSpawn, TagsToFind, DlaConfig.TypeSelection);
+			
+			// specified tile found, update floor plan, update grid
+			if (WalkResult.Key)
+			{
+				FVector TileToUpdate = FVector(WalkResult.Value.X, WalkResult.Value.Y, 0);
+				FloorPlan.Add(FVector(WalkResult.Value.X, WalkResult.Value.Y, 0));
+				
+				UpdateTile(TileToUpdate,TileConfig.PathTag);
+				
+				CurrentFloorSize ++;
+			}
+			
 			break;
 		default: // Central
 			// spawn walkers at random location within grid

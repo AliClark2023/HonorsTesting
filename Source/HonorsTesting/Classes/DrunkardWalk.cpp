@@ -1,6 +1,7 @@
 ﻿# include "DrunkardWalk.h"
 
-TPair<bool,FIntVector2> UDrunkardWalk::Walk(const TMap<FVector, FTilePropertiesStruct>& GridRef, const FIntVector2& GridSize, const FIntVector2& StartPoint, const FGameplayTagContainer TagsToFind)
+TPair<bool,FIntVector2> UDrunkardWalk::Walk(const TMap<FVector, FTilePropertiesStruct>& GridRef, const FIntVector2& GridSize, const FIntVector2& StartPoint,
+	const FGameplayTagContainer& TagsToFind, const EDlaType& WalkType)
 {
 	
 	int32 MaxSteps = 5000; // tune as needed
@@ -46,7 +47,22 @@ TPair<bool,FIntVector2> UDrunkardWalk::Walk(const TMap<FVector, FTilePropertiesS
 			// Found target tag
 			if (Tile->TileTags.HasAny(TagsToFind))
 			{
-				Result = TPair<bool,FIntVector2>(true, CurrentLocation);
+				
+
+				switch (WalkType)
+				{
+				case EDlaType::Inwards:
+					Result = TPair<bool,FIntVector2>(true, CurrentLocation);
+					break;
+				case EDlaType::Outwards:
+					Result = TPair<bool,FIntVector2>(true, FIntVector2(NeighbourPos.Key.X, NeighbourPos.Key.Y));
+					break;
+				default: // Central
+					Result = TPair<bool,FIntVector2>(true, CurrentLocation);
+					break;
+				}
+				
+				//Result = TPair<bool,FIntVector2>(true, CurrentLocation);
 				return Result;
 			}
 
