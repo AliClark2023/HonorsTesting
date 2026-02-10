@@ -3,6 +3,7 @@
 
 #include "HexGrid.h"
 
+#include "DrunkardWalk.h"
 #include "GroomVisualizationData.h"
 #include "MathUtil.h"
 #include "VectorTypes.h"
@@ -506,19 +507,34 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 	// creating initial seed area
 	// central start point (overrides specified starting point)
 	GridInfo.StartPoint = FVector(StaticCast<int>(GridConfig.Columns/ 2), StaticCast<int>(GridConfig.Rows/ 2), 0);
-	// using 1 perlin worm to create seed area
+	// using 1 perlin worm to create seed area, transfer seed number to perlin config
+	PerlinWorms.OriginalSeed = DlaConfig.StartingAreaSeed;
 	PerlinWorms.NumWorms = 1;
 	FloorPlan = PerlinPaths();
 	
 	// create walkers until specified floor size has been met
-	int CurrentFloor = 0;
-	while (CurrentFloor < DlaConfig.FloorSize)
+	int CurrentFloorSize = FloorPlan.Num();
+	while (CurrentFloorSize < DlaConfig.FloorSize)
 	{
 		// where to spawn walker
+		FIntVector2 WalkerSpawn = FIntVector2(0,0);
+		TPair<bool, FIntVector2> WalkResult = TPair<bool,FIntVector2>(false,FIntVector2(0,0));
+		
 		switch (DlaConfig.TypeSelection)
 		{
 		case EDlaType::Inwards:
 			// spawn walkers at random points within the grid (and boundary), if it hits path, previous tile becomes path
+			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
+			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
+			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
+				WalkerSpawn, TileConfig.PathTag);
+			
+			if (WalkResult.Key)
+			{
+				FloorPlan.Add(FVector(WalkResult.Value.X, WalkResult.Value.Y, 0));
+				CurrentFloorSize ++;
+			}
+			
 			break;
 			case EDlaType::Outwards:
 			// spawn walkers at central location, if hits non path, make it path

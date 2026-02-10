@@ -2,13 +2,16 @@
 #include "CoreMinimal.h"
 #include "Math/UnrealMathUtility.h"
 #include "GameFramework/Actor.h"
+#include "HonorsTesting/HeaderFiles/TileDirectionUtils.h"
+#include "HonorsTesting/HeaderFiles/MapStructs.h"
 #include "DrunkardWalk.generated.h"
 
-// class will handle a drunkard walk until it hits a specified tile then stops
+// class will handle Drunkard walks
 UCLASS()
 class HONORSTESTING_API UDrunkardWalk : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
-	
+	// will stop and return current location when TagToFind has been found
+	static TPair<bool,FIntVector2> Walk(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const FIntVector2 &StartPoint, const FGameplayTag TagToFind);
 };
