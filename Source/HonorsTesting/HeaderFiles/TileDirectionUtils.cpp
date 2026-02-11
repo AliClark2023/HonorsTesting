@@ -505,5 +505,31 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 	//return IslandTiles[FMath::RandRange(0, IslandTiles.Num() - 1)];
 }
 
+// depends if the line array contains starting and end points.
+TPair<bool,FVector> UTileDirectionUtils::FindTile(const TMap<FVector, FTilePropertiesStruct>& GridTiles, 
+	const TArray<FVector> &TilesToCheck, const FGameplayTagContainer& TagsToFind)
+{
+	FVector PreviousTile = FVector::ZeroVector;
+	
+	for (const FVector &CheckTile : TilesToCheck)
+	{
+		const FTilePropertiesStruct* CheckTileProp = GridTiles.Find(CheckTile);
+		if (CheckTileProp)
+		{
+			if (CheckTileProp->TileTags.HasAny(TagsToFind)) return TPair<bool, FVector>(true,PreviousTile);
+		}
+		PreviousTile = CheckTile;
+	}
+	
+	/*
+	for (const TPair<FVector, FTilePropertiesStruct> Tile : GridTiles)
+	{
+		if (Tile.Value.TileTags.HasAny(TagsToFind)) return TPair<bool, FVector>(true,PreviousTile);
+		PreviousTile = Tile.Key;
+	}
+	*/
+	return TPair<bool, FVector>(false,FVector::ZeroVector);
+}
+
 
 

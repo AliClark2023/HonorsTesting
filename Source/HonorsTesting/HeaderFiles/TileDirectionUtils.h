@@ -50,6 +50,7 @@ public:
 	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind, FGameplayTagContainer ExcludeTags);
 	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
 	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
+	static TPair<bool,FVector> FindTile(const TMap<FVector, FTilePropertiesStruct> &GridTiles, const TArray<FVector> &TilesToCheck,  const FGameplayTagContainer &TagsToFind);
 	
 private:
 	// getting tiles direct coords (make private?)

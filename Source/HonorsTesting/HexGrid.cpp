@@ -592,6 +592,40 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			// spawn walkers at random location within grid
 			// plot line from current location to central point
 			// traverse line, if it hits path, previous tile also becomes path.
+			// tags to search for
+			TagsToFind.Reset();
+			TagsToFind.AddTag(TileConfig.PathTag);
+			TagsToFind.AddTag(TileConfig.PathStartTag);
+			TagsToFind.AddTag(TileConfig.PathEndTag);
+			
+			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
+			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
+			FVector CentralPoint = GridInfo.StartPoint;
+			FVector WalkerSP = FVector(WalkerSpawn.X,WalkerSpawn.Y, 0);
+			
+			FIntVector CentralPointCube = UTileDirectionUtils::EvenQToCube(CentralPoint);
+			FIntVector WalkerSPCube = UTileDirectionUtils::EvenQToCube(WalkerSP);
+			
+			TArray<FIntVector> CubedTiles = UTileDirectionUtils::CubeLineDraw(WalkerSPCube,CentralPointCube);
+			
+			TArray<FVector> TilesToCheck;
+			for (auto& Tile : CubedTiles)
+			{
+				//need to convert back to Even Q
+				FVector EvenQTile = UTileDirectionUtils::CubeToEvenQ(Tile);
+				TilesToCheck.Add(EvenQTile);
+			}
+			
+			TPair<bool, FVector> PossibleTile = UTileDirectionUtils::FindTile( GridInfo.GridTiles, TilesToCheck, TagsToFind);
+			if (PossibleTile.Key)
+			{
+				FloorPlan.Add(FVector(PossibleTile.Value.X, PossibleTile.Value.Y, 0));
+				
+				UpdateTile(PossibleTile.Value,TileConfig.PathTag);
+				
+				CurrentFloorSize ++;
+			}
+			
 			break;
 		}
 	}
