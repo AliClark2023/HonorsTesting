@@ -513,17 +513,18 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 
 	// using 1 perlin worm to create seed area, transfer seed number to perlin config
 	PerlinWorms.OriginalSeed = DlaConfig.StartingAreaSeed;
-	PerlinWorms.Length = 15;
-	PerlinWorms.NumWorms = 1;
+	PerlinWorms.Length = DlaConfig.WormLength;
+	PerlinWorms.NumWorms = DlaConfig.NumWorms;
 	// this needs to set tiles tags in grid before walks begin
 	const TArray<FVector> SeedArea = PerlinPaths();
 	TArray<FVector> FloorPlan = SeedArea;
 	UpdatePaths(FloorPlan);
 	
+	// only showing seed area (for visualising starting area)
+	if (DlaConfig.SeedAreaOnly) return FloorPlan;
 	
 	// create walkers until specified floor size has been met
 	int CurrentFloorSize = FloorPlan.Num();
-	
 	
 	while (CurrentFloorSize < DlaConfig.FloorSize)
 	{
@@ -560,14 +561,16 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			}
 			
 			break;
+			// creates radial open-plan area, not much variation (except on the borders) not particularly suited for hex grids
 			case EDlaType::Outwards:
 			// Tile to search for
 			TagsToFind.Reset();
 			TagsToFind.AddTag(TileConfig.LandTag);
 			
-			// spawn walkers on central location area, if hits non path, make it path
-			FVector TileToSpawn = SeedArea[FMath::RandRange(0,SeedArea.Num() - 1)];
-			WalkerSpawn = FIntVector2(GridInfo.StartPoint.X,GridInfo.StartPoint.Y);
+			// spawn walkers within created path then walk outwards
+			FVector TileToSpawn = FloorPlan[FMath::RandRange(0,FloorPlan.Num() - 1)];
+			//WalkerSpawn = FIntVector2(GridInfo.StartPoint.X,GridInfo.StartPoint.Y);
+			WalkerSpawn = FIntVector2(TileToSpawn.X,TileToSpawn.Y);
 			
 			
 			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),

@@ -208,10 +208,18 @@ USTRUCT(BlueprintType)
 struct FDlaConfig
 {
 	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Seed Config")
+	int NumWorms = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Seed Config")
+	int WormLength = 5;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Seed Config", meta = (ClampMin = "1.0"))
+	int StartingAreaSeed = 12345;
+	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config")
 	EDlaType TypeSelection = EDlaType::Inwards;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config")
+	bool SeedAreaOnly = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config", meta = (ClampMin = "1.0", ClampMax = "10000.0"))
 	int FloorSize = 25;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config", meta = (ClampMin = "1.0"))
-	int StartingAreaSeed = 12345;
+	
 };
