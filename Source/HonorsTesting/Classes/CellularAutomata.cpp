@@ -106,3 +106,30 @@ TPair<bool, FTilePropertiesStruct> UCellularAutomata::Wolfram(const TMap<FVector
 
 	return TPair<bool,FTilePropertiesStruct>(false, NewState);
 }
+
+TPair<bool, FTilePropertiesStruct> UCellularAutomata::GameOfLife(const TMap<FVector, FTilePropertiesStruct>& GridRef,
+	const FIntVector2& GridSize, const FVector& CentralTile, const FCellularConfig& CellConfig)
+{
+	FTilePropertiesStruct NewState;
+	int AliveNeighbours = 0;
+	
+	// adding all neighbours to array for checking
+	TArray<ETileNeighbour> Neighbours;
+	for (int32 i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums() - 1; i++)
+	{
+		const auto EnumVal = static_cast<ETileNeighbour>(i);
+		if (!StaticEnum<ETileNeighbour>()->HasMetaData(TEXT("Hidden"), i))
+		{
+			Neighbours.Add(EnumVal);
+		}
+	}
+	
+	// check all surrounding neighbours tags and increment alive neighbours
+	
+	// check central tile status
+	// if central is alive
+		// but nighbour count is less than death limit, kill central
+	// if central is dead
+		// but neighbour count is greater than birth rate, become alive
+	return TPair<bool,FTilePropertiesStruct>(false, NewState);
+}

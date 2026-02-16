@@ -19,4 +19,6 @@ public:
 	static TPair<bool,FTilePropertiesStruct> Wolfram(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, 
 		const FVector &CentralTile, const FCellularConfig &CellConfig);
 	
+	static TPair<bool,FTilePropertiesStruct> GameOfLife(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, 
+		const FVector &CentralTile, const FCellularConfig &CellConfig);
 };

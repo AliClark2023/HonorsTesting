@@ -253,6 +253,20 @@ struct FWolframCode
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, EditFixedSize, Category = "Wolfram Config")
 	TArray<FWolframSegment> Segments;
 };
+USTRUCT(BlueprintType)
+struct FGameOfLifeConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "6"))
+	int BirthNumber = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "6"))
+	int StarvationLimit = 2;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "6"))
+	int OverPopLimit = 3;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "0", ClampMax = "100"))
+	int ChanceToStartAlive = 50;
+	
+};
 
 // Parameters governing Cellular automata path generation
 USTRUCT(BlueprintType)
@@ -267,6 +281,8 @@ struct FCellularConfig
 	int NeighbourDistance = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "1"))
 	FWolframCode CodeSequence;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	FGameOfLifeConfig GameOfLifeConfig;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
 	FGameplayTagContainer TagsToCheck;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
