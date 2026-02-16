@@ -29,6 +29,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent) override;
 public:
 	// functions will construct their respective map segments
 	
@@ -120,6 +121,7 @@ public:
 	// DLA path specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FDlaConfig DlaConfig;
+	// Cellular Automata specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FCellularConfig CellularConfig;
 	

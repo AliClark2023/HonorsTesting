@@ -40,6 +40,7 @@ UENUM(BlueprintType)
 enum class ECellularType : uint8
 {
 	Rule30 UMETA(DisplayName = "Rule30"),
+	Wolfram UMETA(DisplayName = "Wolfram"),
 };
 
 // describes tile properties
@@ -208,6 +209,7 @@ struct FPerlinLandscapeConfig
 	FVector2D NoiseOffset = FVector2D(0.1, 0.1);
 };
 
+// Parameters governing DLA Path Generation
 USTRUCT(BlueprintType)
 struct FDlaConfig
 {
@@ -228,6 +230,31 @@ struct FDlaConfig
 	
 };
 
+// Structs used for state comparisons (cellular automata)
+
+USTRUCT(BlueprintType)
+struct FWolframSegment
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wolfram Config")
+	bool Left;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wolfram Config")
+	bool Centre;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wolfram Config")
+	bool Right;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Wolfram Config")
+	bool NewState;
+};
+
+USTRUCT(BlueprintType)
+struct FWolframCode
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, EditFixedSize, Category = "Wolfram Config")
+	TArray<FWolframSegment> Segments;
+};
+
+// Parameters governing Cellular automata path generation
 USTRUCT(BlueprintType)
 struct FCellularConfig
 {
@@ -238,6 +265,8 @@ struct FCellularConfig
 	int IterationSelection = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1.0", ClampMax = "2.0"))
 	int NeighbourDistance = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "1"))
+	FWolframCode CodeSequence;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
 	FGameplayTagContainer TagsToCheck;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")

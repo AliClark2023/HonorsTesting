@@ -35,6 +35,8 @@ AHexGrid::AHexGrid()
 	TileConfig.IceMesh->SetupAttachment(RootComponent);
 	TileConfig.RockMesh= CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("RockMesh"));
 	TileConfig.RockMesh->SetupAttachment(RootComponent);
+	
+	CellularConfig.CodeSequence.Segments.SetNum(8);
 }
 
 // Called when the game starts or when spawned
@@ -52,13 +54,34 @@ void AHexGrid::Tick(float DeltaTime)
 void AHexGrid::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
-	
 	// activated in BP
 	//ConstructLevel();
 	
 	// generate regions
 	
 }
+
+void AHexGrid::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+{
+	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	
+	// Get the property that was changed
+	FName ChangedPropertyName = (PropertyChangedEvent.Property != nullptr) 
+		? PropertyChangedEvent.Property->GetFName()
+		: NAME_None;
+
+	// Only enforce size if "Segments" was edited
+	if (ChangedPropertyName == GET_MEMBER_NAME_CHECKED(AHexGrid, CellularConfig.CodeSequence.Segments))
+	{
+		// Only SetNum if the size is incorrect (avoid redundant writes)
+		if (CellularConfig.CodeSequence.Segments.Num() != 8)
+		{
+			CellularConfig.CodeSequence.Segments.SetNum(8);
+		}
+	}
+}
+
+
 FVector AHexGrid::ConstructLevel()
 {	// new method: generating grid depending on tile tags, generation methods update the tags
 	// generation methods only effect outcome of tile tags
@@ -609,6 +632,7 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 // checks each tile and updates their state (Tags) based on the rule set selected
 TArray<FVector>  AHexGrid::Automata()
 {
+	//TMap<FVector, FTilePropertiesStruct> UpdatedTiles;
 	TArray<FVector> UpdatedTiles;
 	for (int i = 0; i <CellularConfig.IterationSelection; i ++)
 	{
@@ -621,26 +645,38 @@ TArray<FVector>  AHexGrid::Automata()
 			case ECellularType::Rule30:
 				NewState = UCellularAutomata::Rule30(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
 				break;
+			case ECellularType::Wolfram:
+				NewState = UCellularAutomata::Wolfram(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
+				break;
 			default:
 				NewState = UCellularAutomata::Rule30(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
 				break;
 			}
 		
 			if (!NewState.Key) continue;
+			//if (Tile.Value.TileTags != NewState.Value.TileTags) UpdatedTiles.Add(Tile.Key, NewState.Value);
 			if (Tile.Value.TileTags != NewState.Value.TileTags) UpdatedTiles.Add(Tile.Key);
 		}
 		
 		//update tiles after each iteration pass
+		/*
+		for (auto& Tile: UpdatedTiles)
+		{
+			GridInfo.GridTiles.Add(Tile);
+		}
+		*/
 		UpdatePaths(UpdatedTiles);
 		UpdatedTiles.Reset();
 	}
 	
+	// returns all path tiles to main function for processing start and end points
+	TArray<FVector> PathTiles;
 	for (auto& Tile: GridInfo.GridTiles)
 	{
-		if (Tile.Value.TileTags.HasAll(CellularConfig.TagsToCheck)) UpdatedTiles.Add(Tile.Key);
+		if (Tile.Value.TileTags.HasAny(CellularConfig.TagsToCheck)) PathTiles.Add(Tile.Key);
 	}
 	
-	return UpdatedTiles;
+	return PathTiles;
 }
 
 void AHexGrid::VoronoiRegions()
