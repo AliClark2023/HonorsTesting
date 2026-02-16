@@ -6,6 +6,7 @@
 //#include "Components/InstancedStaticMeshComponent.h"
 #include "Math/UnrealMathUtility.h"
 #include "HeaderFiles/MapStructs.h"
+#include "Classes/CellularAutomata.h"
 #include "Classes/PerlinWorm.h"
 #include "GameFramework/Actor.h"
 #include "HeaderFiles/TileDirectionUtils.h"
@@ -51,6 +52,8 @@ public:
 	TArray<FVector> PerlinPaths();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	TArray<FVector> DiffuseLimited();
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	TArray<FVector>  Automata();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	void VoronoiRegions();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
@@ -117,6 +120,8 @@ public:
 	// DLA path specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
 	FDlaConfig DlaConfig;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms")
+	FCellularConfig CellularConfig;
 	
 	//Voronoi Specific
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Algortithms", meta = (ClampMin = "1", ClampMax = "10"))

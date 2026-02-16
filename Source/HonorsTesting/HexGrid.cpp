@@ -203,40 +203,15 @@ void AHexGrid::GeneratePath()
 		case EPathType::DiffuseLimited:
 			Path = DiffuseLimited();
 			break;
+		case EPathType::CellularAutomata:
+			Path = Automata();
+			break;
 		default:
 			Path = Walker();
 		}
 		
 		// make function to use in combinational algorithms
 		FinalizePaths(Path);
-		/*
-		for (FVector Element : Path)
-		{
-			if (FTilePropertiesStruct* TileStatus = GridInfo.GridTiles.Find(Element))
-			{
-				FTilePropertiesStruct NewStatus;
-				NewStatus.WorldLocation = TileStatus->WorldLocation;
-				//NewStatus.TileStates = PathTag;
-				NewStatus.TileTags.Reset();
-				NewStatus.TileTags.AddTag(TileConfig.PathTag);
-				// marking start and end points of path
-				if (Element == Path[0])
-				{
-					NewStatus.TileTags.AddTag(TileConfig.PathStartTag);
-				}else if (Element == (Path[Path.Num()-1])){
-					NewStatus.TileTags.AddTag(TileConfig.PathEndTag);
-					//EndPoint = Element;
-					GridInfo.EndPoint = Element;
-				}else
-				{
-					NewStatus.TileTags.AddTag(TileConfig.PathTag);
-				}
-				
-				
-				GridInfo.GridTiles.Add(Element, NewStatus);
-			}
-		}
-		*/
 		
 		// only checks surrounding tiles for islands when specified
 		if (PerlinWorms.AreIslands)
@@ -630,6 +605,42 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 		}
 	}
 	return FloorPlan;
+}
+// checks each tile and updates their state (Tags) based on the rule set selected
+TArray<FVector>  AHexGrid::Automata()
+{
+	TArray<FVector> UpdatedTiles;
+	for (int i = 0; i <CellularConfig.IterationSelection; i ++)
+	{
+		for (auto& Tile: GridInfo.GridTiles)
+		{
+			TPair<bool, FTilePropertiesStruct> NewState;
+		
+			switch (CellularConfig.RuleSet)
+			{
+			case ECellularType::Rule30:
+				NewState = UCellularAutomata::Rule30(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
+				break;
+			default:
+				NewState = UCellularAutomata::Rule30(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
+				break;
+			}
+		
+			if (!NewState.Key) continue;
+			if (Tile.Value.TileTags != NewState.Value.TileTags) UpdatedTiles.Add(Tile.Key);
+		}
+		
+		//update tiles after each iteration pass
+		UpdatePaths(UpdatedTiles);
+		UpdatedTiles.Reset();
+	}
+	
+	for (auto& Tile: GridInfo.GridTiles)
+	{
+		if (Tile.Value.TileTags.HasAll(CellularConfig.TagsToCheck)) UpdatedTiles.Add(Tile.Key);
+	}
+	
+	return UpdatedTiles;
 }
 
 void AHexGrid::VoronoiRegions()

@@ -23,6 +23,7 @@ enum class EPathType : uint8
 	DrunkardWalk UMETA(DisplayName = "DrunkardWalk"),
 	PerlinWorm UMETA(DisplayName = "PerlinWorm"),
 	DiffuseLimited UMETA(DisplayName = "DiffuseLimited"),
+	CellularAutomata UMETA(DisplayNAme = "CellularAutomata"),
 };
 
 // DLA type selection
@@ -34,6 +35,13 @@ enum class EDlaType : uint8
 	Central UMETA(DisplayName = "Central"),
 };
 
+// Cellular Automata Rule Selection
+UENUM(BlueprintType)
+enum class ECellularType : uint8
+{
+	Rule30 UMETA(DisplayName = "Rule30"),
+};
+
 // describes tile properties
 USTRUCT(BlueprintType)
 struct FTilePropertiesStruct
@@ -43,9 +51,6 @@ struct FTilePropertiesStruct
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	FVector WorldLocation;
 	
-	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
-	//FGameplayTag TileStates;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileProperties")
 	float TileHeight = 1.0f;
 
@@ -146,7 +151,6 @@ struct FTileConfig
 	FGameplayTag RockTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Rock");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "TileConfigTags")
 	FGameplayTag WaterTag = UGameplayTagsManager::Get().RequestGameplayTag("MapGeneration.Regions.Water");
-	
 };
 
 /*
@@ -222,4 +226,22 @@ struct FDlaConfig
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DLA Config", meta = (ClampMin = "1.0", ClampMax = "10000.0"))
 	int FloorSize = 25;
 	
+};
+
+USTRUCT(BlueprintType)
+struct FCellularConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	ECellularType RuleSet = ECellularType::Rule30;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1.0", ClampMax = "10000.0"))
+	int IterationSelection = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1.0", ClampMax = "2.0"))
+	int NeighbourDistance = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	FGameplayTagContainer TagsToCheck;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	FGameplayTag TagToApply;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	FGameplayTag TagToRevert;
 };
