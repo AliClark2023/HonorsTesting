@@ -126,10 +126,61 @@ TPair<bool, FTilePropertiesStruct> UCellularAutomata::GameOfLife(const TMap<FVec
 	
 	// check all surrounding neighbours tags and increment alive neighbours
 	
+	for (const auto& Neighbour : Neighbours)
+	{
+		TPair<FVector, bool> NeighbourCoords = UTileDirectionUtils::GetNeighbour(GridRef, GridSize, Neighbour, CentralTile);
+		if (NeighbourCoords.Value)
+		{
+			if (GridRef.Find(NeighbourCoords.Key)->TileTags.HasAny(CellConfig.TagsToCheck)) AliveNeighbours++;
+		}
+	}
 	// check central tile status
-	// if central is alive
-		// but nighbour count is less than death limit, kill central
-	// if central is dead
-		// but neighbour count is greater than birth rate, become alive
-	return TPair<bool,FTilePropertiesStruct>(false, NewState);
+	// if central is alive (Path)
+		// but neighbour count is less than death limit, kill central (revert tag)
+	if (GridRef.Find(CentralTile)->TileTags.HasAny(CellConfig.TagsToCheck))
+	{
+		if (AliveNeighbours < CellConfig.GameOfLifeConfig.StarvationLimit)
+		{
+			NewState.TileTags.Reset();
+			NewState.TileTags.AddTag(CellConfig.TagToRevert);
+		}else
+		{
+			NewState.TileTags.Reset();
+			NewState.TileTags.AddTag(CellConfig.TagToApply);
+		}
+	}
+	// if central is dead (Non-Path)
+	// but neighbour count is greater than birth rate, become alive
+	else
+	{
+		if (AliveNeighbours > CellConfig.GameOfLifeConfig.BirthNumber)
+		{
+			NewState.TileTags.Reset();
+			NewState.TileTags.AddTag(CellConfig.TagToApply);
+		}else
+		{
+			NewState.TileTags.Reset();
+			NewState.TileTags.AddTag(CellConfig.TagToRevert);
+		}
+	}
+
+	return TPair<bool,FTilePropertiesStruct>(true, NewState);
+}
+
+// returns array of tile coords that are deemed to be alive (paths)
+TArray<FVector> UCellularAutomata::RandomPopulate(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const int &Chance)
+{
+	TArray<FVector> Populated;
+	
+	for (auto &Tile: GridRef)
+	{
+		if (UTileDirectionUtils::IsTileOnBoundary(GridSize.X, GridSize.Y, Tile.Key)) continue;
+		
+		int TileAliveChance = FMath::RandRange(1, 100);
+		if (TileAliveChance <= Chance)
+		{
+			Populated.Add(Tile.Key);
+		}
+	}
+	return Populated;
 }

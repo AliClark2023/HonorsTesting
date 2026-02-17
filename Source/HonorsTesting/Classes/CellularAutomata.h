@@ -21,4 +21,6 @@ public:
 	
 	static TPair<bool,FTilePropertiesStruct> GameOfLife(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, 
 		const FVector &CentralTile, const FCellularConfig &CellConfig);
+	
+	static TArray<FVector> RandomPopulate(const TMap<FVector, FTilePropertiesStruct> &GridRef, const FIntVector2 &GridSize, const int &Chance);
 };

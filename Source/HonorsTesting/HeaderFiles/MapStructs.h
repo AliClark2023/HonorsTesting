@@ -41,6 +41,7 @@ enum class ECellularType : uint8
 {
 	Rule30 UMETA(DisplayName = "Rule30"),
 	Wolfram UMETA(DisplayName = "Wolfram"),
+	GameOfLife UMETA(DisplayName = "GameOfLife"),
 };
 
 // describes tile properties

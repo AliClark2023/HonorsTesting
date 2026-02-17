@@ -632,8 +632,13 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 // checks each tile and updates their state (Tags) based on the rule set selected
 TArray<FVector>  AHexGrid::Automata()
 {
-	//TMap<FVector, FTilePropertiesStruct> UpdatedTiles;
+	// populate grid with random tiles (update grid tiles)
 	TArray<FVector> UpdatedTiles;
+	UpdatedTiles = UCellularAutomata::RandomPopulate(GridInfo.GridTiles, FIntVector2(GridConfig.Columns,GridConfig.Rows), CellularConfig.GameOfLifeConfig.ChanceToStartAlive);
+	UpdatePaths(UpdatedTiles);
+	UpdatedTiles.Reset();
+	
+	// perform Automata depending on selection
 	for (int i = 0; i <CellularConfig.IterationSelection; i ++)
 	{
 		for (auto& Tile: GridInfo.GridTiles)
@@ -647,6 +652,9 @@ TArray<FVector>  AHexGrid::Automata()
 				break;
 			case ECellularType::Wolfram:
 				NewState = UCellularAutomata::Wolfram(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
+				break;
+			case ECellularType::GameOfLife:
+				NewState = UCellularAutomata::GameOfLife(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
 				break;
 			default:
 				NewState = UCellularAutomata::Rule30(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), Tile.Key,CellularConfig);
@@ -992,7 +1000,7 @@ void AHexGrid::FinalizePaths(TArray<FVector>& Path)
 	}
 }
 
-// updates paths with new values, used before finalizing paths
+// updates paths with new values, used before finalizing paths or with any intermediate generations that depend on grid state
 void AHexGrid::UpdatePaths(TArray<FVector>& Path)
 {
 	for (FVector Element : Path)
