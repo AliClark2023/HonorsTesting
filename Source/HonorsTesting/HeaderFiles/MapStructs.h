@@ -78,6 +78,10 @@ struct FOperationConfig
 	bool bGenerateRegions;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
 	EPathType PathMethod = EPathType::DrunkardWalk;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Operations")
+	bool LinkIslands = false;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Operations")
+	int NumberOfIslands =0;
 };
 // describes grid layouts used in each layer
 USTRUCT(BlueprintType)
@@ -179,8 +183,8 @@ struct FWormConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "1"))
 	int NumWorms = 5;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
-	bool AreIslands = false;
+	//UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
+	//bool AreIslands = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
 	int Length = 10;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig")
@@ -193,8 +197,8 @@ struct FWormConfig
 	float OriginalFreq = 0.1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "WormConfig", meta = (ClampMin = "0", ClampMax = "5"))
 	FVector2D WormFreqRange = FVector2D(0.1f, 1.2f);
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WormConfig")
-	int NumberOfIslands =0;
+	//UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "WormConfig")
+	//int NumberOfIslands =0;
 };
 
 // Parameters governing Perlin landscape

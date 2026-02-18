@@ -233,16 +233,39 @@ void AHexGrid::GeneratePath()
 			Path = Walker();
 		}
 		
-		// make function to use in combinational algorithms
+		// Adds all path tags to vectors in array
 		FinalizePaths(Path);
 		
-		// only checks surrounding tiles for islands when specified
-		if (PerlinWorms.AreIslands)
+		
+		// only checks surrounding tiles for islands when specified (check needs to be performed last after tags have bee assigned)
+		/*
+		if (OperationConfig.AreIslands)
 		{
-			FGameplayTagContainer TilesToExclude;
-			TilesToExclude.AddTag(TileConfig.PathStartTag);
-			TilesToExclude.AddTag(TileConfig.PathEndTag);
-			PerlinWorms.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TileConfig.PathTag, TilesToExclude );
+			FGameplayTagContainer TagsToSearch;
+			TagsToSearch.AddTag(TileConfig.PathTag);
+			TagsToSearch.AddTag(TileConfig.PathStartTag);
+			TagsToSearch.AddTag(TileConfig.PathEndTag);
+			OperationConfig.NumberOfIslands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag );
+		}
+		*/
+		FGameplayTagContainer TagsToSearch;
+		TagsToSearch.AddTag(TileConfig.PathTag);
+		TagsToSearch.AddTag(TileConfig.PathStartTag);
+		TagsToSearch.AddTag(TileConfig.PathEndTag);
+		TPair<int, TArray<FVector>> Islands;
+		Islands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag);
+		OperationConfig.NumberOfIslands = Islands.Key;
+		
+		if (Islands.Key > 1 && OperationConfig.LinkIslands)
+		{
+			FGameplayTagContainer ExcludeTags;
+			ExcludeTags.AddTag(TileConfig.PathStartTag);
+			ExcludeTags.AddTag(TileConfig.PathEndTag);
+			
+			UTileDirectionUtils::JoinIslands(GridInfo.GridTiles,TileConfig.PathTag, ExcludeTags, Islands.Key,Islands.Value);
+			Islands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag);
+			OperationConfig.NumberOfIslands = Islands.Key;
+			// need way to check for start/end tags and add if not found
 		}
 	}
 }
@@ -634,8 +657,12 @@ TArray<FVector>  AHexGrid::Automata()
 {
 	// populate grid with random tiles (update grid tiles)
 	TArray<FVector> UpdatedTiles;
-	UpdatedTiles = UCellularAutomata::RandomPopulate(GridInfo.GridTiles, FIntVector2(GridConfig.Columns,GridConfig.Rows), CellularConfig.GameOfLifeConfig.ChanceToStartAlive);
-	UpdatePaths(UpdatedTiles);
+	if (CellularConfig.RuleSet == ECellularType::GameOfLife)
+	{
+		UpdatedTiles = UCellularAutomata::RandomPopulate(GridInfo.GridTiles, FIntVector2(GridConfig.Columns,GridConfig.Rows), CellularConfig.GameOfLifeConfig.ChanceToStartAlive);
+		UpdatePaths(UpdatedTiles);
+	}
+	
 	UpdatedTiles.Reset();
 	
 	// perform Automata depending on selection

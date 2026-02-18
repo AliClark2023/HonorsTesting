@@ -1,6 +1,7 @@
 ﻿#include "TileDirectionUtils.h"
 
 #include "Runtime/Core/Internal/IO/PlatformIoDispatcher.h"
+#include "String/Join.h"
 
 // angle must be between 0 and 360
 ETileNeighbour UTileDirectionUtils::GetDirectionFromAngle(float Angle)
@@ -346,7 +347,8 @@ TArray<FIntVector> UTileDirectionUtils::CubeLineDraw(const FIntVector& TileA, co
 
 
 // determining if grid contains islands and joins any detected
-int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector2D GridSize, FGameplayTag TagToFind, FGameplayTagContainer ExcludeTags)
+TPair<int, TArray<FVector>> UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector2D GridSize, 
+	const FGameplayTagContainer &TagsToFind, const FGameplayTag &TagToSet)
 {
 	int n = GridSize.X;
 	int m = GridSize.Y;
@@ -363,14 +365,67 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 	
 	for (auto& Tile : GridTiles)
 	{
-		if (Tile.Value.TileTags.HasTag(TagToFind) && !Visited[Tile.Key.X][Tile.Key.Y])
+		//if (Tile.Value.TileTags.HasTag(TagToFind) && !Visited[Tile.Key.X][Tile.Key.Y])
+		if (Tile.Value.TileTags.HasAny(TagsToFind) && !Visited[Tile.Key.X][Tile.Key.Y])
 		{
-			IslandCentroids.Add(BFS(GridTiles, Tile.Key, Visited, TagToFind, GridSize));
+			IslandCentroids.Add(BFS(GridTiles, Tile.Key, Visited, TagsToFind, GridSize));
 			// Connected island
 			Islands++;
 		}
 	}
 
+	// creating links between islands (from centroid point, remove Island variable)
+	//if (LinkIslands) JoinIslands(GridTiles,TagToSet, Islands, IslandCentroids);
+	
+	
+	/*
+	if (Islands > 0)
+	{
+		TArray<FVector> Links;
+		for (int i = 0; i< IslandCentroids.Num() - 1; i++)
+		{
+			// testing new method
+			FIntVector TileA = EvenQToCube(IslandCentroids[i]);
+			FIntVector TileB = EvenQToCube(IslandCentroids[i+1]);
+			TArray<FIntVector> CubeLinks = CubeLineDraw(TileA, TileB);
+			
+			// break if function only returns 1 link (should be starting point)
+			if (CubeLinks.Num() <= 1) break;
+			
+			for (auto Link : CubeLinks)
+			{
+				Links.Add(CubeToEvenQ(Link));
+			}
+			
+			// search grid for tiles to change into links
+			for (auto& Link : Links)
+			{
+				if (FTilePropertiesStruct* TileToChange = GridTiles.Find(Link))
+				{
+					// skip specified tags, prevents overwriting start/end or other specified tiles
+					// (not needed if finalize paths happen after calling this function)
+					//if (TileToChange->TileTags.HasAny(ExcludeTags)) continue;
+					
+					FTilePropertiesStruct NewStatus;
+					NewStatus.WorldLocation = TileToChange->WorldLocation;
+					NewStatus.TileTags.Reset();
+					NewStatus.TileTags.AddTag(TagToSet);
+
+					GridTiles.Add(Link, NewStatus);
+				}
+			}
+
+			Links.Empty();
+		}
+	}
+	*/
+	
+	return TPair<int, TArray<FVector>>(Islands, IslandCentroids);
+}
+
+void UTileDirectionUtils::JoinIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, const FGameplayTag& TagToSet, const FGameplayTagContainer &TagsToExclude,
+	const int &Islands, const TArray<FVector>& IslandCentroids)
+{
 	// creating links between islands (from centroid point, remove Island variable)
 	if (Islands > 0)
 	{
@@ -396,12 +451,13 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 				if (FTilePropertiesStruct* TileToChange = GridTiles.Find(Link))
 				{
 					// skip specified tags, prevents overwriting start/end or other specified tiles
-					if (TileToChange->TileTags.HasAny(ExcludeTags)) continue;
+					// (not needed if finalize paths happen after calling this function)
+					if (TileToChange->TileTags.HasAny(TagsToExclude)) continue;
 					
 					FTilePropertiesStruct NewStatus;
 					NewStatus.WorldLocation = TileToChange->WorldLocation;
 					NewStatus.TileTags.Reset();
-					NewStatus.TileTags.AddTag(TagToFind);
+					NewStatus.TileTags.AddTag(TagToSet);
 
 					GridTiles.Add(Link, NewStatus);
 				}
@@ -409,21 +465,19 @@ int UTileDirectionUtils::CountIslands(TMap<FVector, FTilePropertiesStruct>& Grid
 
 			Links.Empty();
 		}
-
-		
 	}
-	
-	return Islands;
 }
 
 bool UTileDirectionUtils::IsTileSafe(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
-	TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize)
+                                     TArray<TArray<bool>> &Visited, const FGameplayTagContainer &TagsToFind, FVector2D GridSize)
 {
 	
 	if (IsTileBeforeBoundary(GridSize.X, GridSize.Y, TileToVisit))
+	//if (!IsTileOnBoundary(GridSize.X, GridSize.Y, TileToVisit))
 	{
 		FTilePropertiesStruct* VisitedTile = GridTiles.Find(TileToVisit);
-		if (VisitedTile && VisitedTile->TileTags.HasTag(TagToFind) && !Visited[TileToVisit.X][TileToVisit.Y])
+		//if (VisitedTile && VisitedTile->TileTags.HasTag(TagToFind) && !Visited[TileToVisit.X][TileToVisit.Y])
+		if (VisitedTile && VisitedTile->TileTags.HasAny(TagsToFind) && !Visited[TileToVisit.X][TileToVisit.Y])
 		{
 			return true;
 		}
@@ -433,7 +487,7 @@ bool UTileDirectionUtils::IsTileSafe(TMap<FVector, FTilePropertiesStruct>& GridT
 
 // detects all adjoining tiles forming an island
 FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles, FVector TileToVisit,
-	TArray<TArray<bool>>& Visited, FGameplayTag TagToFind, FVector2D GridSize)
+	TArray<TArray<bool>>& Visited, const FGameplayTagContainer &TagsToFind, FVector2D GridSize)
 {
 	TQueue<FVector> VisitedQueue;
 	VisitedQueue.Enqueue(TileToVisit);
@@ -473,7 +527,7 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 			}
 
 			// if tile is a specified tile type add to queue and mark visited
-			if (IsTileSafe(GridTiles, NeighbourTile, Visited, TagToFind, GridSize))
+			if (IsTileSafe(GridTiles, NeighbourTile, Visited, TagsToFind, GridSize))
 			{
 				//mark as visited, add to queue
 				Visited[NeighbourTile.X][NeighbourTile.Y] = true;
@@ -494,8 +548,13 @@ FVector UTileDirectionUtils::BFS(TMap<FVector, FTilePropertiesStruct>& GridTiles
 		SumOfTiles += Tile;
 	}
 
-	//returning centroid of island
+	// returning tile location if island consists of 1 tile
+	if (IslandTiles.Num() == 0)
+	{
+		return TileToVisit;
+	}
 	
+	//returning centroid of island
 	const FVector IslandCentreF = SumOfTiles / IslandTiles.Num();
 	const FVector IslandCenterInt (FMath::RoundToInt(IslandCentreF.X), FMath::RoundToInt(IslandCentreF.Y),0);
 	return IslandCenterInt;

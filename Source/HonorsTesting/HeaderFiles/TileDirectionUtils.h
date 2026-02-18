@@ -47,9 +47,10 @@ public:
 	static TArray<FIntVector> CubeLineDraw(const FIntVector& TileA, const FIntVector& TileB);
 	
 	//  path algorithm utilities
-	static int CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, FGameplayTag TagToFind, FGameplayTagContainer ExcludeTags);
-	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
-	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, FGameplayTag TagToFind, FVector2D GridSize);
+	static TPair<int, TArray<FVector>> CountIslands(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector2D GridSize, const FGameplayTagContainer &TagsToFind, const FGameplayTag &TagToSet);
+	static void JoinIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, const FGameplayTag& TagToSet, const FGameplayTagContainer &TagsToExclude, const int &Islands, const TArray<FVector>& IslandCentroids);
+	static bool IsTileSafe(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, const FGameplayTagContainer &TagsToFind, FVector2D GridSize);
+	static FVector BFS(TMap<FVector, FTilePropertiesStruct> &GridTiles, FVector TileToVisit, TArray<TArray<bool>> &Visited, const FGameplayTagContainer &TagsToFind, FVector2D GridSize);
 	static TPair<bool,FVector> FindTile(const TMap<FVector, FTilePropertiesStruct> &GridTiles, const TArray<FVector> &TilesToCheck,  const FGameplayTagContainer &TagsToFind);
 	
 private:
