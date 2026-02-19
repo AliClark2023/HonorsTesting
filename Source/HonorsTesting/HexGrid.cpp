@@ -265,7 +265,7 @@ void AHexGrid::GeneratePath()
 			UTileDirectionUtils::JoinIslands(GridInfo.GridTiles,TileConfig.PathTag, ExcludeTags, Islands.Key,Islands.Value);
 			Islands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag);
 			OperationConfig.NumberOfIslands = Islands.Key;
-			// need way to check for start/end tags and add if not found
+			// need way to check for start/end tags and add if not found (not needed as these are excluded in the join islands function)
 		}
 	}
 }
@@ -670,6 +670,8 @@ TArray<FVector>  AHexGrid::Automata()
 	{
 		for (auto& Tile: GridInfo.GridTiles)
 		{
+			if (UTileDirectionUtils::IsTileOnBoundary(GridConfig.Columns, GridConfig.Rows, Tile.Key))  continue;
+			
 			TPair<bool, FTilePropertiesStruct> NewState;
 		
 			switch (CellularConfig.RuleSet)

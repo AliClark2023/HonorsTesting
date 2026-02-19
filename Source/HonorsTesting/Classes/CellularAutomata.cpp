@@ -23,11 +23,18 @@ TPair<bool,FTilePropertiesStruct> UCellularAutomata::Rule30(const TMap<FVector, 
 	NWNeighbourState = GridRef.Find(NWNeighbour.Key);
 	NENeighbourState = GridRef.Find(NENeighbour.Key);
 	
+	// valid neighbour states
 	if (CentralState && NWNeighbourState && NENeighbourState)
 	{
+		// checking if neighbour coords are on boundary (making them false if they are)
 		CentralStateIsTag = CentralState->TileTags.HasAny(CellConfig.TagsToCheck);
+		//NWNeighbour.Value ? LeftStateIsTag = NWNeighbourState->TileTags.HasAny(CellConfig.TagsToCheck): LeftStateIsTag = false;
+		//NENeighbour.Value ? RightStateIsTag = NENeighbourState->TileTags.HasAny(CellConfig.TagsToCheck): RightStateIsTag = false;
+		
+		
 		LeftStateIsTag = NWNeighbourState->TileTags.HasAny(CellConfig.TagsToCheck);
 		RightStateIsTag = NENeighbourState->TileTags.HasAny(CellConfig.TagsToCheck);
+		
 		
 		// state calculation based on neighbouring states
 		// Formula new state (is tag specified): leftState != (CentralState || RightState)
