@@ -88,6 +88,7 @@ TPair<bool, FTilePropertiesStruct> UCellularAutomata::Wolfram(const TMap<FVector
 		RightStateIsTag = NENeighbourState->TileTags.HasAny(CellConfig.TagsToCheck);
 		
 		// compare all tile states for corresponding code sequence, apply new state when matches
+		NewStateIsTag = CentralStateIsTag;
 		for (const auto& Sequence : CellConfig.CodeSequence.Segments)
 		{
 			if (Sequence.Left == LeftStateIsTag

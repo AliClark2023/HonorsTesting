@@ -657,7 +657,10 @@ TArray<FVector>  AHexGrid::Automata()
 {
 	// populate grid with random tiles (update grid tiles)
 	TArray<FVector> UpdatedTiles;
-	if (CellularConfig.RuleSet == ECellularType::GameOfLife)
+	TArray<TPair<FVector,FGameplayTagContainer>> TilesToUpdate;
+	
+	//if (CellularConfig.RuleSet == ECellularType::GameOfLife)
+	if (CellularConfig.PopulateTiles)
 	{
 		UpdatedTiles = UCellularAutomata::RandomPopulate(GridInfo.GridTiles, FIntVector2(GridConfig.Columns,GridConfig.Rows), CellularConfig.GameOfLifeConfig.ChanceToStartAlive);
 		UpdatePaths(UpdatedTiles);
@@ -691,9 +694,16 @@ TArray<FVector>  AHexGrid::Automata()
 			}
 		
 			if (!NewState.Key) continue;
-			//if (Tile.Value.TileTags != NewState.Value.TileTags) UpdatedTiles.Add(Tile.Key, NewState.Value);
-			if (Tile.Value.TileTags != NewState.Value.TileTags) UpdatedTiles.Add(Tile.Key);
+			if (Tile.Value.TileTags != NewState.Value.TileTags)
+			{
+				//UpdatedTiles.Add(Tile.Key);
+				
+				// add grid coord and tag type to update
+				TilesToUpdate.Add(TPair<FVector,FGameplayTagContainer>(Tile.Key,NewState.Value.TileTags));
+			}
 		}
+		
+		
 		
 		//update tiles after each iteration pass
 		/*
@@ -702,8 +712,17 @@ TArray<FVector>  AHexGrid::Automata()
 			GridInfo.GridTiles.Add(Tile);
 		}
 		*/
+		for (auto& Tile : TilesToUpdate)
+		{
+			// new update tile function
+			UpdateTiles(Tile);
+		}
+		TilesToUpdate.Reset();
+		
+		/*
 		UpdatePaths(UpdatedTiles);
 		UpdatedTiles.Reset();
+		*/
 	}
 	
 	// returns all path tiles to main function for processing start and end points
@@ -1045,6 +1064,21 @@ void AHexGrid::UpdatePaths(TArray<FVector>& Path)
 			//updating tile
 			GridInfo.GridTiles.Add(Element, NewStatus);
 		}
+	}
+}
+
+void AHexGrid::UpdateTiles(const TPair<FVector, FGameplayTagContainer>& Tiles)
+{
+	FTilePropertiesStruct* FoundTile = GridInfo.GridTiles.Find(Tiles.Key);
+	if (FoundTile)
+	{
+		FTilePropertiesStruct NewStatus;
+		NewStatus.WorldLocation = FoundTile->WorldLocation;
+		NewStatus.TileTags.Reset();
+		NewStatus.TileTags.AppendTags(Tiles.Value);
+		
+		//updating tile
+		GridInfo.GridTiles.Add(Tiles.Key, NewStatus);
 	}
 }
 

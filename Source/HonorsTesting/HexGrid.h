@@ -90,6 +90,7 @@ private:
 	FGameplayTag GetRegionTag(ERegionType Type) const;
 	void FinalizePaths(TArray<FVector>& Path);
 	void UpdatePaths(TArray<FVector>& Path);
+	void UpdateTiles(const TPair<FVector,FGameplayTagContainer>& Tiles);
 	//void UpdateStartPoint(FVector& Tile);
 	void UpdateTile(FVector& Tile, FGameplayTag TagToAdd);
 	// walker algorithms

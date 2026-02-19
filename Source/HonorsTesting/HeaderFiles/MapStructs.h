@@ -284,6 +284,8 @@ struct FCellularConfig
 	int IterationSelection = 1;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1.0", ClampMax = "2.0"))
 	int NeighbourDistance = 1;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
+	bool PopulateTiles = false;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config", meta = (ClampMin = "1", ClampMax = "1"))
 	FWolframCode CodeSequence;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Cellular Config")
