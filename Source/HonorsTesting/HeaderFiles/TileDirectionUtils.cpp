@@ -423,15 +423,21 @@ TPair<int, TArray<FVector>> UTileDirectionUtils::CountIslands(TMap<FVector, FTil
 	return TPair<int, TArray<FVector>>(Islands, IslandCentroids);
 }
 
-void UTileDirectionUtils::JoinIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, const FGameplayTag& TagToSet, const FGameplayTagContainer &TagsToExclude,
+void UTileDirectionUtils::JoinIslands(TMap<FVector, FTilePropertiesStruct>& GridTiles, const FVector2D &GridSize, const FGameplayTag& TagToSet, const FGameplayTagContainer &TagsToExclude,
 	const int &Islands, const TArray<FVector>& IslandCentroids)
 {
-	// creating links between islands (from centroid point, remove Island variable)
+	// creating links between islands (from centroid point)
 	if (Islands > 0)
 	{
 		TArray<FVector> Links;
 		for (int i = 0; i< IslandCentroids.Num() - 1; i++)
 		{
+			// boundary check
+			if (IsTileOnBoundary(GridSize.X, GridSize.Y, IslandCentroids[i])
+				|| IsTileOnBoundary(GridSize.X, GridSize.Y, IslandCentroids[i+1]))
+			{
+				continue;
+			}
 			// testing new method
 			FIntVector TileA = EvenQToCube(IslandCentroids[i]);
 			FIntVector TileB = EvenQToCube(IslandCentroids[i+1]);

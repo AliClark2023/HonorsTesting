@@ -93,7 +93,7 @@ private:
 	void UpdateTiles(const TPair<FVector,FGameplayTagContainer>& Tiles);
 	//void UpdateStartPoint(FVector& Tile);
 	void UpdateTile(FVector& Tile, FGameplayTag TagToAdd);
-	// walker algorithms
+	// returns blocked status when visiting neighbours
 	static TPair<bool, ETileNeighbour> DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles);
 public:
 	// Map tile properties

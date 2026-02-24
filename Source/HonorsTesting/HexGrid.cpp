@@ -262,7 +262,7 @@ void AHexGrid::GeneratePath()
 			ExcludeTags.AddTag(TileConfig.PathStartTag);
 			ExcludeTags.AddTag(TileConfig.PathEndTag);
 			
-			UTileDirectionUtils::JoinIslands(GridInfo.GridTiles,TileConfig.PathTag, ExcludeTags, Islands.Key,Islands.Value);
+			UTileDirectionUtils::JoinIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows), TileConfig.PathTag, ExcludeTags, Islands.Key,Islands.Value);
 			Islands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag);
 			OperationConfig.NumberOfIslands = Islands.Key;
 			// need way to check for start/end tags and add if not found (not needed as these are excluded in the join islands function)
@@ -293,20 +293,21 @@ void AHexGrid::GenerateLandscape()
 TArray<FVector> AHexGrid::Walker()
 {
 	int _attempts = 0;
-	TArray<FVector> _TestPath;
+	TArray<FVector> IteratedPath;
+	TArray<FVector> GeneratedPath;
 	bool _generate = true;
 	
 	while (_attempts <= DrunkardConfig.IterationAttempts && _generate)
 	{
 		FVector _CurrentTile;
-		_TestPath.Empty();
+		IteratedPath.Empty();
 		int _CurrentSteps = 0;
 		_attempts++;
 		
 		if (GridInfo.GridTiles.Contains(GridInfo.StartPoint))
 		{
 			_CurrentTile = GridInfo.StartPoint;
-			_TestPath.Add(_CurrentTile);
+			IteratedPath.Add(_CurrentTile);
 			_CurrentSteps++;
 			TArray<ETileNeighbour> _VisitedTiles;
 			bool _pathBlocked = false;
@@ -329,9 +330,9 @@ TArray<FVector> AHexGrid::Walker()
 				{
 				case ETileNeighbour::North:
 					_Neighbour = UTileDirectionUtils::NorthNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						
 						_CurrentSteps++;
@@ -345,9 +346,9 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				case ETileNeighbour::Northeast:
 					_Neighbour = UTileDirectionUtils::NorthEastNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						_CurrentSteps++;
 						_VisitedTiles.Empty();
@@ -358,9 +359,9 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				case ETileNeighbour::Southeast:
 					_Neighbour = UTileDirectionUtils::SouthEastNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						_CurrentSteps++;
 						_VisitedTiles.Empty();
@@ -371,9 +372,9 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				case ETileNeighbour::South:
 					_Neighbour = UTileDirectionUtils::SouthNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						_CurrentSteps++;
 						_VisitedTiles.Empty();
@@ -384,9 +385,9 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				case ETileNeighbour::Southwest:
 					_Neighbour = UTileDirectionUtils::SouthWestNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						_CurrentSteps++;
 						_VisitedTiles.Empty();
@@ -397,9 +398,9 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				case ETileNeighbour::Northwest:
 					_Neighbour = UTileDirectionUtils::NorthWestNeighbour(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows), _CurrentTile);
-					if (_Neighbour.Value && !_TestPath.Contains(_Neighbour.Key))
+					if (_Neighbour.Value && !IteratedPath.Contains(_Neighbour.Key))
 					{
-						_TestPath.Add(_Neighbour.Key);
+						IteratedPath.Add(_Neighbour.Key);
 						_CurrentTile = _Neighbour.Key;
 						_CurrentSteps++;
 						_VisitedTiles.Empty();
@@ -410,7 +411,7 @@ TArray<FVector> AHexGrid::Walker()
 					break;
 				}
 
-				if (_TestPath.Num() >= DrunkardConfig.PathSize)
+				if (IteratedPath.Num() >= DrunkardConfig.PathSize)
 				{
 					// stop loops, successful path generation
 					_generate = false;
@@ -418,10 +419,13 @@ TArray<FVector> AHexGrid::Walker()
 				}
 			}
 		}
+		
+		// keep generation of greater size while iterating
+		if (IteratedPath.Num() >= GeneratedPath.Num()) GeneratedPath = IteratedPath;
 	}
 	
 	DrunkardConfig.CurrentIteration = _attempts;
-	return _TestPath;
+	return GeneratedPath;
 }
 
 void AHexGrid::PerlinLandscape()
@@ -565,8 +569,8 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			TagsToFind.AddTag(TileConfig.PathStartTag);
 			TagsToFind.AddTag(TileConfig.PathEndTag);
 			// spawn walkers at random points within the grid (and boundary), if it hits path, previous tile becomes path
-			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
-			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
+			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 2);
+			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 2);
 			WalkResult = UDrunkardWalk::Walk(GridInfo.GridTiles, FIntVector2(GridConfig.Columns, GridConfig.Rows),
 				WalkerSpawn, TagsToFind, DlaConfig.TypeSelection);
 			
@@ -619,8 +623,8 @@ TArray<FVector> AHexGrid::DiffuseLimited()
 			TagsToFind.AddTag(TileConfig.PathStartTag);
 			TagsToFind.AddTag(TileConfig.PathEndTag);
 			
-			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 1);
-			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 1);
+			WalkerSpawn.X = FMath::RandRange(1,GridConfig.Columns - 2);
+			WalkerSpawn.Y = FMath::RandRange(1,GridConfig.Rows - 2);
 			FVector CentralPoint = GridInfo.StartPoint;
 			FVector WalkerSP = FVector(WalkerSpawn.X,WalkerSpawn.Y, 0);
 			
@@ -1129,6 +1133,7 @@ void AHexGrid::UpdateStartPoint(FVector& Tile)
 }
 */
 
+// returns blocked status when visiting neighbours
 TPair<bool, ETileNeighbour> AHexGrid::DrunkardsWalk(const TArray<ETileNeighbour>& VisitedTiles)
 {
 	// DW method
