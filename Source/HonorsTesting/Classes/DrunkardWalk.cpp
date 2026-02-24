@@ -17,10 +17,13 @@ TPair<bool,FIntVector2> UDrunkardWalk::Walk(const TMap<FVector, FTilePropertiesS
 	for (int32 i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums() - 1; i++)
 	{
 		const auto EnumVal = static_cast<ETileNeighbour>(i);
+		/*
 		if (!StaticEnum<ETileNeighbour>()->HasMetaData(TEXT("Hidden"), i))
 		{
-			Neighbours.Add(EnumVal);
+			
 		}
+		*/
+		Neighbours.Add(EnumVal);
 	}
 	
 	while (!Result.Key && Steps < MaxSteps)

@@ -61,9 +61,10 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 	
 }
 
-void AHexGrid::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& PropertyChangedEvent)
+#if WITH_EDITOR
+void AHexGrid::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
-	Super::PostEditChangeChainProperty(PropertyChangedEvent);
+	Super::PostEditChangeProperty(PropertyChangedEvent);
 	
 	// Get the property that was changed
 	FName ChangedPropertyName = (PropertyChangedEvent.Property != nullptr) 
@@ -80,7 +81,7 @@ void AHexGrid::PostEditChangeChainProperty(struct FPropertyChangedChainEvent& Pr
 		}
 	}
 }
-
+#endif
 
 FVector AHexGrid::ConstructLevel()
 {	// new method: generating grid depending on tile tags, generation methods update the tags

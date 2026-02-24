@@ -126,10 +126,13 @@ TPair<bool, FTilePropertiesStruct> UCellularAutomata::GameOfLife(const TMap<FVec
 	for (int32 i = 0; i < StaticEnum<ETileNeighbour>()->NumEnums() - 1; i++)
 	{
 		const auto EnumVal = static_cast<ETileNeighbour>(i);
+		/*
 		if (!StaticEnum<ETileNeighbour>()->HasMetaData(TEXT("Hidden"), i))
 		{
 			Neighbours.Add(EnumVal);
 		}
+		*/
+		Neighbours.Add(EnumVal);
 	}
 	
 	// check all surrounding neighbours tags and increment alive neighbours
