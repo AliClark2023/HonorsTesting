@@ -61,6 +61,8 @@ public:
 	FVector ConstructLevel();
 	UFUNCTION(BlueprintCallable, Category = "Generation")
 	FVector LoadConstruction(FGridProperties GridLayout);
+	UFUNCTION(BlueprintCallable, Category = "Generation")
+	FVector RandomConstruction();
 	UFUNCTION(BlueprintCallable, Category = "Grid Calculations")
 	void CalculateGrid();
 	UFUNCTION(BlueprintCallable, Category = "Query Grid")

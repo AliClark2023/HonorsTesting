@@ -110,6 +110,21 @@ FVector AHexGrid::LoadConstruction(FGridProperties GridLayout)
 	return GridInfo.EndPoint;
 }
 
+// randomly selects which algorithm to use for its path generation, requires path config parameters to be assigned before calling
+FVector AHexGrid::RandomConstruction()
+{
+	// select algorithm type
+	OperationConfig.PathMethod = static_cast<EPathType>(FMath::RandRange(0, StaticEnum<EPathType>()->NumEnums() - 1));
+	
+	// select algorithm variation
+	CalculateGrid();
+	GeneratePath();
+	GenerateLandscape();
+	VoronoiRegions();
+	ConstructGrid();
+	return GridInfo.EndPoint;
+}
+
 void AHexGrid::ConstructGrid()
 {
 	

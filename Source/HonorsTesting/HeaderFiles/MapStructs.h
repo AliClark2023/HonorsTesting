@@ -171,7 +171,7 @@ struct FDrunkardConfig
 	int PathSize = 5;
 	// used to limit algorithm and prevent UE from crashing
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "DrunkardConfig", meta = (ClampMin = "1", ClampMax = "10000"))
-	int IterationAttempts = 10;
+	int IterationAttempts = 10000;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "DrunkardConfig")
 	int CurrentIteration = 0;
 };
