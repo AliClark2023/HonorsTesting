@@ -1053,6 +1053,8 @@ void AHexGrid::FinalizePaths(TArray<FVector>& Path)
 			if (Element == Path[0])
 			{
 				NewStatus.TileTags.AddTag(TileConfig.PathStartTag);
+				// updating starting point of path
+				GridInfo.StartPoint = Element;
 			}else if (Element == (Path[Path.Num()-1])){
 				NewStatus.TileTags.AddTag(TileConfig.PathEndTag);
 				//EndPoint = Element;
