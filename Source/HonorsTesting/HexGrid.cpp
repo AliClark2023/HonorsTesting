@@ -714,7 +714,9 @@ TArray<FVector>  AHexGrid::Automata()
 			}
 		
 			if (!NewState.Key) continue;
+			// need to leave path start tile alone
 			if (Tile.Value.TileTags != NewState.Value.TileTags)
+			//if (Tile.Value.TileTags != NewState.Value.TileTags && !Tile.Value.TileTags.HasTag(TileConfig.PathStartTag))
 			{
 				//UpdatedTiles.Add(Tile.Key);
 				
@@ -722,27 +724,12 @@ TArray<FVector>  AHexGrid::Automata()
 				TilesToUpdate.Add(TPair<FVector,FGameplayTagContainer>(Tile.Key,NewState.Value.TileTags));
 			}
 		}
-		
-		
-		
-		//update tiles after each iteration pass
-		/*
-		for (auto& Tile: UpdatedTiles)
-		{
-			GridInfo.GridTiles.Add(Tile);
-		}
-		*/
 		for (auto& Tile : TilesToUpdate)
 		{
 			// new update tile function
 			UpdateTiles(Tile);
 		}
 		TilesToUpdate.Reset();
-		
-		/*
-		UpdatePaths(UpdatedTiles);
-		UpdatedTiles.Reset();
-		*/
 	}
 	
 	// returns all path tiles to main function for processing start and end points
@@ -752,7 +739,26 @@ TArray<FVector>  AHexGrid::Automata()
 		if (Tile.Value.TileTags.HasAny(CellularConfig.TagsToCheck)) PathTiles.Add(Tile.Key);
 	}
 	
+	
+	// Sort players based on grid coord, in descending order
+	PathTiles.Sort([](const FVector& A, const FVector& B) {
+		if (A.X != B.X) return A.X > B.X;
+		if (A.Y != B.Y) return A.Y > B.Y;
+		return A.Z > B.Z;
+	});
+	
+	
+	TArray<FVector> AllPathTiles;
+	//ensuring starting tile is added to path at correct coords.
+	if (GridInfo.GridTiles.Contains(GridInfo.StartPoint))
+	{
+		AllPathTiles.Add(GridInfo.StartPoint);
+		AllPathTiles.Append(PathTiles);
+		return AllPathTiles;
+	}
+
 	return PathTiles;
+
 }
 
 void AHexGrid::VoronoiRegions()
