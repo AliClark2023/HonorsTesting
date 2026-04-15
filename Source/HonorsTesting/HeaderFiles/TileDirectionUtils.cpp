@@ -48,7 +48,6 @@ TPair<FVector, bool> UTileDirectionUtils::NorthNeighbour(const TMap<FVector, FTi
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -65,7 +64,6 @@ TPair<FVector, bool> UTileDirectionUtils::NorthEastNeighbour(const TMap<FVector,
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -83,7 +81,6 @@ TPair<FVector, bool> UTileDirectionUtils::SouthEastNeighbour(const TMap<FVector,
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -99,7 +96,6 @@ TPair<FVector, bool> UTileDirectionUtils::SouthNeighbour(const TMap<FVector, FTi
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -116,7 +112,6 @@ TPair<FVector, bool> UTileDirectionUtils::SouthWestNeighbour(const TMap<FVector,
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y,TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -133,7 +128,6 @@ TPair<FVector, bool> UTileDirectionUtils::NorthWestNeighbour(const TMap<FVector,
 	}else if (IsTileOnBoundary(GridSize.X, GridSize.Y, TileNeighbour))
 	{
 		return TPair<FVector, bool>(CurrentTile, false);
-		//return TPair<FVector, bool>(GetOppositeNeighbour(Type,CurrentTile), true);
 	}
 	return TPair<FVector, bool>(TileNeighbour, true);
 }
@@ -246,15 +240,6 @@ FIntVector UTileDirectionUtils::CubeSubtract(const FIntVector& A, const FIntVect
 // converts Even Q coords to Cube coordinates 
 FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
 {
-/*
-	const int Parity = static_cast<int>(EvenQ.X) & 1;
-	const int Q = EvenQ.X;
-	const int Y = EvenQ.Y - (Q + Parity) / 2;
-	
-	return FIntVector(Q, Y, -Q-Y);
-	*/
-	// other method
-
 	const int Col = EvenQ.X;
 	const int Row = EvenQ.Y;
 
@@ -263,26 +248,14 @@ FIntVector UTileDirectionUtils::EvenQToCube(const FVector& EvenQ)
 	const int Y = -X - Z;
 
 	return FIntVector(X, Y, Z);
-
-
 }
 
 FVector UTileDirectionUtils::CubeToEvenQ(const FIntVector& Cube)
 {
-/*
-	const int Parity = Cube.X & 1;
-	const int Col = Cube.X;
-	const int Row = Cube.Y + (Cube.X + Parity) / 2;
-	
-	return FVector(Col, Row, 0);
-*/
-	// other method
-
 	const int Col = Cube.X;
 	const int Row = Cube.Z + (Col - (Col & 1)) / 2;
 
 	return FVector(Col, Row, 0);
-
 }
 
 // manhattan distance in cube space

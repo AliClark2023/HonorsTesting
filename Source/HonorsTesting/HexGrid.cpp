@@ -62,6 +62,7 @@ void AHexGrid::OnConstruction(const FTransform& Transform)
 }
 
 #if WITH_EDITOR
+/*
 void AHexGrid::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent)
 {
 	Super::PostEditChangeProperty(PropertyChangedEvent);
@@ -81,6 +82,7 @@ void AHexGrid::PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChan
 		}
 	}
 }
+*/
 #endif
 
 FVector AHexGrid::ConstructLevel()
@@ -280,8 +282,8 @@ void AHexGrid::GeneratePath()
 			
 			UTileDirectionUtils::JoinIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows), TileConfig.PathTag, ExcludeTags, Islands.Key,Islands.Value);
 			Islands = UTileDirectionUtils::CountIslands(GridInfo.GridTiles,FVector2D(GridConfig.Columns, GridConfig.Rows),TagsToSearch, TileConfig.PathTag);
-			OperationConfig.NumberOfIslands = Islands.Key;
-			// need way to check for start/end tags and add if not found (not needed as these are excluded in the join islands function)
+			// used to verify if islands were successfully joined
+			//OperationConfig.NumberOfIslands = Islands.Key;
 		}
 	}
 }
